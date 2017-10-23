@@ -1,9 +1,24 @@
 require 'spec_helper'
 
 describe Puppet::Type.type(:gpo) do
+    let(:validpath) {
+        'machine::windowsupdate::windowsupdateserver'
+    }
+
     context 'when validating path' do
         it 'should have path as namevar' do
             expect(described_class.key_attributes).to eq([:path])
+        end
+
+        it 'should accept a valid path' do
+            res = described_class.new(:path => validpath)
+            expect(res[:path]).to eq(validpath)
+        end
+
+        it 'should fail with an invalid path' do
+            expect {
+                described_class.new(:path => 'foo')
+            }.to raise_error(Puppet::Error, /Wrong path: 'foo'/)
         end
     end
 
@@ -13,12 +28,15 @@ describe Puppet::Type.type(:gpo) do
         end
 
         it 'should be ensured to present by default' do
-            res = described_class.new(:path => 'foo')
+            res = described_class.new(:path => validpath)
             expect(res[:ensure]).to eq(:present)
         end
 
         it 'should be ensurable to absent' do
-            res = described_class.new(:path => 'foo', :ensure => :absent)
+            res = described_class.new(
+                :path => validpath,
+                :ensure => :absent
+            )
             expect(res[:ensure]).to eq(:absent)
         end
     end
