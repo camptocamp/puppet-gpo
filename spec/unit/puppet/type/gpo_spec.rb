@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Puppet::Type.type(:gpo) do
-    let(:validpath) {
+    let(:valid_string_path) {
         'windowsupdate::autoupdatecfg::allowmuupdateservice'
     }
 
@@ -11,8 +11,8 @@ describe Puppet::Type.type(:gpo) do
         end
 
         it 'should accept a valid path' do
-            res = described_class.new(:path => validpath)
-            expect(res[:path]).to eq(validpath)
+            res = described_class.new(:path => valid_string_path)
+            expect(res[:path]).to eq(valid_string_path)
         end
 
         it 'should fail with an invalid path' do
@@ -28,13 +28,13 @@ describe Puppet::Type.type(:gpo) do
         end
 
         it 'should be ensured to present by default' do
-            res = described_class.new(:path => validpath)
+            res = described_class.new(:path => valid_string_path)
             expect(res[:ensure]).to eq(:present)
         end
 
         it 'should be ensurable to absent' do
             res = described_class.new(
-                :path => validpath,
+                :path => valid_string_path,
                 :ensure => :absent
             )
             expect(res[:ensure]).to eq(:absent)
@@ -49,7 +49,7 @@ describe Puppet::Type.type(:gpo) do
         context 'when expecting a string' do
             it 'should accept a string' do
                 res = described_class.new(
-                    :path  => validpath,
+                    :path  => valid_string_path,
                     :value => 'foo',
                 )
                 expect(res[:value]).to eq('foo')
@@ -58,7 +58,7 @@ describe Puppet::Type.type(:gpo) do
             it 'should fail with a boolean' do
                 expect {
                     described_class.new(
-                        :path  => validpath,
+                        :path  => valid_string_path,
                         :value => true,
                     )
                 }.to raise_error(Puppet::Error, /Value should be a string, not 'true'/)
