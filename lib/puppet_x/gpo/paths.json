@@ -1,5 +1,5 @@
 {
   "machine::windowsupdate::windowsupdateserver": {
-    "test": "foo"
+    "type": "DWORD"
   }
 }

@@ -45,5 +45,24 @@ describe Puppet::Type.type(:gpo) do
         it 'should have a value property' do
             expect(described_class.attrtype(:value)).to eq(:property)
         end
+
+        context 'when expecting a string' do
+            it 'should accept a string' do
+                res = described_class.new(
+                    :path  => validpath,
+                    :value => 'foo',
+                )
+                expect(res[:value]).to eq('foo')
+            end
+
+            it 'should fail with a boolean' do
+                expect {
+                    described_class.new(
+                        :path  => validpath,
+                        :value => true,
+                    )
+                }.to raise_error(Puppet::Error, /Value should be a string, not 'true'/)
+            end
+        end
     end
 end
