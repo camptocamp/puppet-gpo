@@ -8,7 +8,7 @@ Puppet::Type.newtype(:gpo) do
 
     newparam(:path, :namevar => true) do
         validate do |val|
-            unless PuppetX::Gpo::valid_paths.has_key? val
+            unless PuppetX::Gpo.new.valid_paths.has_key? val
                 raise Puppet::Error, _("Wrong path: '#{val}'")
             end
         end
