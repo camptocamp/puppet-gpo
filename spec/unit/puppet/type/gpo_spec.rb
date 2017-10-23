@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Puppet::Type.type(:gpo) do
-    context 'when validating namevar' do
+    context 'when validating path' do
         it 'should have path as namevar' do
             expect(described_class.key_attributes).to eq([:path])
         end
