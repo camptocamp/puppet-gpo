@@ -8,7 +8,7 @@ Puppet::Type.newtype(:gpo) do
 
     newparam(:path, :namevar => true) do
         validate do |val|
-            unless PuppetX::Gpo.new.valid_paths.has_key? val
+            if PuppetX::Gpo.new.item_by_path(val).nil?
                 raise Puppet::Error, _("Wrong path: '#{val}'")
             end
         end
@@ -16,9 +16,9 @@ Puppet::Type.newtype(:gpo) do
 
     newproperty(:value) do
         validate do |val|
-            k = PuppetX::Gpo.new.valid_paths[@resource[:path]]
-            case k['type']
-            when 'DWORD'
+            k = PuppetX::Gpo.new.item_by_path(@resource[:path])
+            case k['setting_valuetype']
+            when 'REG_DWORD'
                 raise Puppet::Error, _("Value should be a string, not '#{val}'") unless val.is_a? String
             else
                 raise Puppet::Error, _("Unknown type '#{k['type']}'")

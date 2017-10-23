@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Puppet::Type.type(:gpo) do
     let(:validpath) {
-        'machine::windowsupdate::windowsupdateserver'
+        'windowsupdate::autoupdatecfg::allowmuupdateservice'
     }
 
     context 'when validating path' do
