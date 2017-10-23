@@ -5,6 +5,10 @@ describe Puppet::Type.type(:gpo) do
         'windowsupdate::autoupdatecfg::allowmuupdateservice'
     }
 
+    let(:valid_hash_path) {
+        'advancedfirewall::wf_firewallrules::firewallrules'
+    }
+
     context 'when validating path' do
         it 'should have path as namevar' do
             expect(described_class.key_attributes).to eq([:path])
@@ -62,6 +66,25 @@ describe Puppet::Type.type(:gpo) do
                         :value => true,
                     )
                 }.to raise_error(Puppet::Error, /Value should be a string, not 'true'/)
+            end
+        end
+
+        context 'when expecting a hash' do
+            it 'should accept a hash' do
+                res = described_class.new(
+                    :path  => valid_hash_path,
+                    :value => { 'foo' => 'bar' },
+                )
+                expect(res[:value]).to eq({'foo' => 'bar'})
+            end
+
+            it 'should fail with a string' do
+                expect {
+                    described_class.new(
+                        :path  => valid_hash_path,
+                        :value => 'foo',
+                    )
+                }.to raise_error(Puppet::Error, /Value should be a hash, not 'foo'/)
             end
         end
     end

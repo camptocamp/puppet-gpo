@@ -18,8 +18,10 @@ Puppet::Type.newtype(:gpo) do
         validate do |val|
             k = PuppetX::Gpo.new.item_by_path(@resource[:path])
             case k['setting_valuetype']
-            when 'REG_DWORD'
+            when 'REG_DWORD', 'REG_SZ', 'REG_MULTI_SZ'
                 raise Puppet::Error, _("Value should be a string, not '#{val}'") unless val.is_a? String
+            when '[HASHTABLE]'
+                raise Puppet::Error, _("Value should be a hash, not '#{val}'") unless val.is_a? Hash
             else
                 raise Puppet::Error, _("Unknown type '#{k['type']}'")
             end
