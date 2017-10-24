@@ -14,6 +14,36 @@ Puppet::Type.newtype(:gpo) do
         end
     end
 
+    newparam(:admx_file, :namevar => true) do
+    end
+
+    newparam(:policy_id, :namevar => true) do
+    end
+
+    newparam(:setting_valuename, :namevar => true) do
+    end
+
+    def self.title_patterns
+        identity = lambda { |x| x }
+        [
+            [
+                /^((\S+)::(\S+)::(\S+))$/,
+                [
+                    [ :path, identity ],
+                    [ :admx_file, identity ],
+                    [ :policy_id, identity ],
+                    [ :setting_valuename, identity ],
+                ]
+            ],
+            [
+                /(.*)/,
+                [
+                    [ :path, identity ],
+                ]
+            ]
+        ]
+    end
+
     newproperty(:value) do
         validate do |val|
             k = PuppetX::Gpo.new.item_by_path(@resource[:path])
