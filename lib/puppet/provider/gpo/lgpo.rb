@@ -9,32 +9,7 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
   end
 
   def create
-      scope = resource[:scope].to_s
-      admx_file = resource[:admx_file]
-      policy_id = resource[:policy_id]
-      setting_valuename = resource[:setting_valuename]
-      value = resource[:value]
-      path = PuppetX::Gpo::Paths.new.get_item(scope, admx_file, policy_id, setting_valuename)
-
-      if path.nil?
-          raise Puppet::Error, "Wrong path: '#{path}'"
-      end
-
-      out_scope = scope == 'machine' ? 'computer' : scope
-      out = "#{out_scope}\n#{path['setting_key']}\n#{'setting_valuename'}\n#{path['setting_valuetype'].gsub('REG_', '')}:#{value}"
-
-      out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
-      File.open(out_file_path, 'w') do |out_file|
-          out_file.write(out)
-      end
-
-      lgpo_args = ["/#{scope[0]}", out_file_path]
-      if guid = path['policy_cse']
-          lgpo_args << '/e' << guid
-      end
-      lgpo(*lgpo_args)
-      File.delete(out_file_path)
-
+      set_value(resource[:value])
       @property_hash[:ensure] = :present
   end
 
@@ -45,7 +20,7 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
   end
 
   def delete
-      # TODO: delete resource
+      set_value('DELETE')
       @property_hash[:ensure] = :deleted
   end
 
@@ -95,5 +70,36 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
               })
           end
       end.flatten
+  end
+
+  def set_value(val)
+      scope = resource[:scope].to_s
+      admx_file = resource[:admx_file]
+      policy_id = resource[:policy_id]
+      setting_valuename = resource[:setting_valuename]
+      path = PuppetX::Gpo::Paths.new.get_item(scope, admx_file, policy_id, setting_valuename)
+
+      if path.nil?
+          raise Puppet::Error, "Wrong path: '#{path}'"
+      end
+
+      out_scope = scope == 'machine' ? 'computer' : scope
+
+      real_val = val == 'DELETE' ? val : "#{path['setting_valuetype'].gsub('REG_', '')}:#{val}"
+
+      out = "#{out_scope}\n#{path['setting_key']}\n#{'setting_valuename'}\n#{real_val}"
+
+      out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
+      File.open(out_file_path, 'w') do |out_file|
+          out_file.write(out)
+      end
+
+      lgpo_args = ["/#{scope[0]}", out_file_path]
+      if guid = path['policy_cse']
+          lgpo_args << '/e' << guid
+      end
+      lgpo(*lgpo_args)
+      File.delete(out_file_path)
+
   end
 end
