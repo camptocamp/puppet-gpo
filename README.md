@@ -2,3 +2,26 @@ GPO
 ===
 
 [![Build Status](https://img.shields.io/travis/camptocamp/puppet-gpo/master.svg)](https://travis-ci.org/camptocamp/puppet-gpo)
+
+
+## Usage
+
+```puppet
+gpo { 'windowsupdate::autoupdatecfg::allowmuupdateservice':
+  ensure => present,
+  value  => '1',
+}
+```
+
+
+## Separate namevars
+
+```puppet
+gpo { 'Allow MU Update Service':
+  ensure            => present,
+  admx_file         => 'WindowsUpdate',
+  policy_id         => 'AutoUpdateCfg',
+  setting_valuename => 'AllowMUUpdateService',
+  value             => '1',
+}
+```
