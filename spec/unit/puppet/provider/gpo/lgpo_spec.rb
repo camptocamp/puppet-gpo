@@ -18,6 +18,14 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
         resource.provider
     end
 
+    let(:vardir) do
+      'C:\ProgramData\PuppetLabs\Puppet\var'
+    end
+
+    let(:out_file) do
+        File.join(vardir, '/lgpo_import.txt')
+    end
+
     context 'when listing instances' do
         it 'should list instances' do
             provider.class.expects(:lgpo).once.with(
@@ -73,10 +81,12 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
     end
 
     context 'when creating a resource' do
+        before :each do
+            expect(Puppet).to receive(:[]).with(:vardir).and_return('C:\ProgramData\PuppetLabs\Puppet\var')
+        end
+
         context 'when there is no cse' do
             it 'should create a resource without /e' do
-                expect(Puppet).to receive(:[]).with(:vardir).and_return('C:\ProgramData\PuppetLabs\Puppet\var')
-                out_file = 'C:\ProgramData\PuppetLabs\Puppet\var/lgpo_import.txt'
                 file = StringIO.new
                 expect(File).to receive(:open).once.with(out_file, 'w').and_yield(file)
                 expect(file).to receive(:write).with("computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nsetting_valuename\nDWORD:1")
@@ -99,9 +109,6 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
             end
 
             it 'should create a resource with /e' do
-                expect(Puppet).to receive(:[]).with(:vardir).and_return('C:\ProgramData\PuppetLabs\Puppet\var')
-                out_file = 'C:\ProgramData\PuppetLabs\Puppet\var/lgpo_import.txt'
-
                 file = StringIO.new
                 expect(File).to receive(:open).once.with(out_file, 'w').and_yield(file)
                 expect(file).to receive(:write).with("computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nsetting_valuename\nDWORD:1")
@@ -118,10 +125,12 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
     end
 
     context 'when deleting a resource' do
+        before :each do
+            expect(Puppet).to receive(:[]).with(:vardir).and_return('C:\ProgramData\PuppetLabs\Puppet\var')
+        end
+
         context 'when there is no cse' do
             it 'should create a resource without /e' do
-                expect(Puppet).to receive(:[]).with(:vardir).and_return('C:\ProgramData\PuppetLabs\Puppet\var')
-                out_file = 'C:\ProgramData\PuppetLabs\Puppet\var/lgpo_import.txt'
                 file = StringIO.new
                 expect(File).to receive(:open).once.with(out_file, 'w').and_yield(file)
                 expect(file).to receive(:write).with("computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nsetting_valuename\nDELETE")
@@ -144,9 +153,6 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
             end
 
             it 'should create a resource with /e' do
-                expect(Puppet).to receive(:[]).with(:vardir).and_return('C:\ProgramData\PuppetLabs\Puppet\var')
-                out_file = 'C:\ProgramData\PuppetLabs\Puppet\var/lgpo_import.txt'
-
                 file = StringIO.new
                 expect(File).to receive(:open).once.with(out_file, 'w').and_yield(file)
                 expect(file).to receive(:write).with("computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nsetting_valuename\nDELETE")
