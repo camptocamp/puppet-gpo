@@ -32,7 +32,7 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
 
               new({
                   :title             => "#{scope}::#{admx_file}::#{policy_id}::#{setting_valuename}",
-                  :ensure            => split_g[3] == 'DELETE' ? :absent : :present,
+                  :ensure            => split_g[3] == 'DELETE' ? :deleted : :present,
                   :scope             => scope.to_sym,
                   :admx_file         => admx_file,
                   :policy_id         => policy_id,

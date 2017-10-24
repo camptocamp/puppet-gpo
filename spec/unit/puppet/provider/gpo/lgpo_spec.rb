@@ -44,7 +44,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
             })
             expect(instances[4]).to eq({
                 :title             => 'machine::inetres::disableactivexfirstprompt::nofirsttimeprompt',
-                :ensure            => :absent,
+                :ensure            => :deleted,
                 :scope             => :machine,
                 :admx_file         => 'inetres',
                 :policy_id         => 'disableactivexfirstprompt',
