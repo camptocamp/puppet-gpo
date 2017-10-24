@@ -19,6 +19,14 @@ module PuppetX
                         p['setting_valuename'].downcase == setting_valuename
                 }[0]
             end
+
+            def get_by_key(scope, registry_key, setting_valuename)
+                valid_paths.select { |p|
+                    (p['policy_class'].downcase == scope || p['policy_class'] == 'Both') &&
+                        p['setting_key'].downcase == registry_key &&
+                        p['setting_valuename'].downcase == setting_valuename
+                }[0]
+            end
         end
     end
 end
