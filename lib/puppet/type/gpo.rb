@@ -9,6 +9,15 @@ Puppet::Type.newtype(:gpo) do
     newparam(:path, :namevar => true) do
     end
 
+    newparam(:scope, :namevar => true) do
+        newvalues(:user, :machine)
+        defaultto(:machine)
+
+        munge do |val|
+            val.downcase.to_sym
+        end
+    end
+
     newparam(:admx_file, :namevar => true) do
         munge do |val|
             val.downcase
@@ -27,17 +36,34 @@ Puppet::Type.newtype(:gpo) do
         end
 
         validate do |val|
-            if PuppetX::Gpo.new.get_item(@resource[:admx_file], @resource[:policy_id], val).nil?
-                raise Puppet::Error, "Wrong path: '#{@resource[:admx_file]}::#{@resource[:policy_id]}::#{val}'"
+            scope = (resource[:scope] || :machine).to_s   # defaults get computed after validation
+            path = resource[:path] || "#{scope}::#{resource[:admx_file]}::#{resource[:policy_id]}::#{val}"
+            if PuppetX::Gpo.new.get_item(
+                    scope,
+                    resource[:admx_file],
+                    resource[:policy_id],
+                    val
+            ).nil?
+                raise Puppet::Error, "Wrong path: '#{path}'"
             end
         end
     end
 
     def self.title_patterns
-        identity = lambda { |x| x }
+        identity = lambda { |x| x.downcase }
         [
             [
-                /^((\S+)::(\S+)::(\S+))$/,
+                /^(([^:]+)::([^:]+)::([^:]+)::([^:]+))$/,
+                [
+                    [ :path, identity ],
+                    [ :scope, identity ],
+                    [ :admx_file, identity ],
+                    [ :policy_id, identity ],
+                    [ :setting_valuename, identity ],
+                ]
+            ],
+            [
+                /^(([^:]+)::([^:]+)::([^:]+))$/,
                 [
                     [ :path, identity ],
                     [ :admx_file, identity ],
@@ -56,13 +82,14 @@ Puppet::Type.newtype(:gpo) do
 
     newproperty(:value) do
         validate do |val|
-            path = @resource[:path]
-            path ||= "#{@resource[:admx_file]}::#{@resource[:policy_id]}::#{@resource[:setting_valuename]}"
+            scope = (resource[:scope] || :machine).to_s   # defaults get computed after validation
+            path = resource[:path] || "#{scope}::#{resource[:admx_file]}::#{resource[:policy_id]}::#{resource[:setting_valuename]}"
 
             k = PuppetX::Gpo.new.get_item(
-                @resource[:admx_file],
-                @resource[:policy_id],
-                @resource[:setting_valuename]
+                scope,
+                resource[:admx_file],
+                resource[:policy_id],
+                resource[:setting_valuename]
             )
             if k.nil?
                 raise Puppet::Error, "Wrong path: '#{path}'"

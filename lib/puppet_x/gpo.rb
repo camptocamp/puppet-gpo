@@ -10,11 +10,12 @@ module PuppetX
             File.join(File.dirname(__FILE__), 'gpo/paths.json')
         end
 
-        def get_item(admx_file, policy_id, setting_valuename)
+        def get_item(scope, admx_file, policy_id, setting_valuename)
             valid_paths.select { |p|
-                p['admx_file'].downcase == admx_file &&
+                p['policy_class'].downcase == scope &&
+                    p['admx_file'].downcase == admx_file &&
                     p['policy_id'].downcase == policy_id &&
-                      p['setting_valuename'].downcase == setting_valuename
+                    p['setting_valuename'].downcase == setting_valuename
             }[0]
         end
     end

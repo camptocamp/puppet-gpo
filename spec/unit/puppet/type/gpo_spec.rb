@@ -5,20 +5,33 @@ describe Puppet::Type.type(:gpo) do
         'windowsupdate::autoupdatecfg::allowmuupdateservice'
     }
 
+    let(:valid_scoped_string_path) {
+        'User::WordWheel::CustomSearch::InternetExtensionName'
+    }
+
     let(:valid_hash_path) {
         'advancedfirewall::wf_firewallrules::firewallrules'
     }
 
     context 'when using namevar' do
         it 'should have namevars' do
-            expect(described_class.key_attributes).to eq([:path, :admx_file, :policy_id, :setting_valuename])
+            expect(described_class.key_attributes).to eq([:path, :scope, :admx_file, :policy_id, :setting_valuename])
         end
 
-        it 'should accept a composite namevar' do
+        it 'should accept a composite namevar with default scope' do
             res = described_class.new(:title => valid_string_path)
+            expect(res[:scope]).to eq(:machine)
             expect(res[:admx_file]).to eq('windowsupdate')
             expect(res[:policy_id]).to eq('autoupdatecfg')
             expect(res[:setting_valuename]).to eq('allowmuupdateservice')
+        end
+
+        it 'should accept a composite namevar with scope' do
+            res = described_class.new(:title => valid_scoped_string_path)
+            expect(res[:scope]).to eq(:user)
+            expect(res[:admx_file]).to eq('wordwheel')
+            expect(res[:policy_id]).to eq('customsearch')
+            expect(res[:setting_valuename]).to eq('internetextensionname')
         end
     end
 
@@ -32,9 +45,25 @@ describe Puppet::Type.type(:gpo) do
             expect {
                 described_class.new(
                     :title => 'foo',
-                    :value => 'bar'
+                    :value => 'bar',
                 )
             }.to raise_error(Puppet::Error, /Wrong path: 'foo'/)
+        end
+    end
+
+    context 'when validating scope' do
+        it 'should accept a valid scope' do
+            res = described_class.new(:title => valid_string_path)
+            expect(res[:scope]).to eq(:machine)
+        end
+
+        it 'should fail with an invalid scope' do
+            expect {
+                described_class.new(
+                    :title => valid_string_path,
+                    :scope => 'foo',
+                )
+            }.to raise_error(Puppet::Error, /Invalid value "foo"/)
         end
     end
 
