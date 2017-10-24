@@ -25,3 +25,12 @@ gpo { 'Allow MU Update Service':
   value             => '1',
 }
 ```
+
+## Specify scope
+
+```puppet
+gpo { 'User::WordWheel::CustomSearch::InternetExtensionName':
+  ensure => present,
+  value  => '1',
+}
+```
