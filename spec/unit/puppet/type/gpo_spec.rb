@@ -38,6 +38,22 @@ describe Puppet::Type.type(:gpo) do
         end
     end
 
+    context 'when validating setting_valuename' do
+        it 'should accept a valid setting_valuename' do
+            res = described_class.new(:title => valid_string_path)
+            expect(res[:setting_valuename]).to eq('allowmuupdateservice')
+        end
+
+        it 'should fail with an invalid path' do
+            expect {
+                described_class.new(
+                    :title => 'foo::autoupdatecfg::allowmuupdateservice',
+                    :value => 'bar'
+                )
+            }.to raise_error(Puppet::Error, /Wrong path: 'foo::autoupdatecfg::allowmuupdateservice'/)
+        end
+    end
+
     context 'when validating ensure' do
         it 'should be ensurable' do
             expect(described_class.attrtype(:ensure)).to eq(:property)

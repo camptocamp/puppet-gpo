@@ -25,6 +25,12 @@ Puppet::Type.newtype(:gpo) do
         munge do |val|
             val.downcase
         end
+
+        validate do |val|
+            if PuppetX::Gpo.new.get_item(@resource[:admx_file], @resource[:policy_id], val).nil?
+                raise Puppet::Error, "Wrong path: '#{@resource[:admx_file]}::#{@resource[:policy_id]}::#{val}'"
+            end
+        end
     end
 
     def self.title_patterns
@@ -53,7 +59,11 @@ Puppet::Type.newtype(:gpo) do
             path = @resource[:path]
             path ||= "#{@resource[:admx_file]}::#{@resource[:policy_id]}::#{@resource[:setting_valuename]}"
 
-            k = PuppetX::Gpo.new.get_item(@resource[:admx_file], @resource[:policy_id], @resource[:setting_valuename])
+            k = PuppetX::Gpo.new.get_item(
+                @resource[:admx_file],
+                @resource[:policy_id],
+                @resource[:setting_valuename]
+            )
             if k.nil?
                 raise Puppet::Error, "Wrong path: '#{path}'"
             end
