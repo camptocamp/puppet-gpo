@@ -7,6 +7,10 @@ Puppet::Type.newtype(:gpo) do
     end
 
     newparam(:path, :namevar => true) do
+        munge do |val|
+            val.downcase
+        end
+
         validate do |val|
             if PuppetX::Gpo.new.item_by_path(val).nil?
                 raise Puppet::Error, _("Wrong path: '#{val}'")
@@ -15,12 +19,21 @@ Puppet::Type.newtype(:gpo) do
     end
 
     newparam(:admx_file, :namevar => true) do
+        munge do |val|
+            val.downcase
+        end
     end
 
     newparam(:policy_id, :namevar => true) do
+        munge do |val|
+            val.downcase
+        end
     end
 
     newparam(:setting_valuename, :namevar => true) do
+        munge do |val|
+            val.downcase
+        end
     end
 
     def self.title_patterns
