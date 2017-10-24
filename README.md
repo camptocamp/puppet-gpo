@@ -2,6 +2,7 @@ GPO
 ===
 
 [![Build Status](https://img.shields.io/travis/camptocamp/puppet-gpo/master.svg)](https://travis-ci.org/camptocamp/puppet-gpo)
+[![Coverage Status](https://img.shields.io/coveralls/camptocamp/puppet-gpo.svg)](https://coveralls.io/r/camptocamp/puppet-gpo?branch=master)
 
 
 ## Usage
