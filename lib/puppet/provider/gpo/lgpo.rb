@@ -21,7 +21,7 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
       end
 
       out_scope = scope == 'machine' ? 'computer' : scope
-      out = "#{out_scope}\n#{path['setting_key']}\n#{'setting_valuename'}\n#{path['setting_valuetype']}:#{value}"
+      out = "#{out_scope}\n#{path['setting_key']}\n#{'setting_valuename'}\n#{path['setting_valuetype'].gsub('REG_', '')}:#{value}"
 
       out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
       File.open(out_file_path, 'w') do |out_file|

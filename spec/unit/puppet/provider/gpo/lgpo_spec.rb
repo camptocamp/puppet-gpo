@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'stringio'
 
 describe Puppet::Type.type(:gpo).provider(:lgpo) do
     let(:params) do
@@ -97,16 +98,19 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
             end
 
             it 'should create a resource with /e' do
-                #out_file = 'C:\ProgramData\PuppetLabs\Puppet\var\lgpo_import.txt'
-                out_file = '/dev/null/lgpo_import.txt'
-                require 'stringio'
-                testfile = StringIO.new
-                expect(File).to receive(:open).once.with(out_file, 'w').and_return(testfile)
+                expect(Puppet).to receive(:[]).with(:vardir).and_return('C:\ProgramData\PuppetLabs\Puppet\var')
+                out_file = 'C:\ProgramData\PuppetLabs\Puppet\var/lgpo_import.txt'
+
+                file = StringIO.new
+                expect(File).to receive(:open).once.with(out_file, 'w').and_yield(file)
+                expect(file).to receive(:write).with("computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nsetting_valuename\nDWORD:1")
+
                 provider.class.expects(:lgpo).once.with(
                     '/m', out_file,
                     '/e', '{D76B9641-3288-4f75-942D-087DE603E3EA}'
                 ).returns(nil)
                 expect(File).to receive(:delete).once.with(out_file).and_return(nil)
+
                 provider.create
             end
         end
