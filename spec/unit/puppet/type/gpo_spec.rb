@@ -109,6 +109,14 @@ describe Puppet::Type.type(:gpo) do
             )
             expect(res[:ensure]).to eq(:absent)
         end
+
+        it 'should be ensurable to deleted' do
+            res = described_class.new(
+                :title  => valid_string_path,
+                :ensure => :deleted
+            )
+            expect(res[:ensure]).to eq(:deleted)
+        end
     end
 
     context 'when validating value' do

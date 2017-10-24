@@ -8,6 +8,10 @@ Puppet::Type.newtype(:gpo) do
     ensurable do
         defaultvalues
         defaultto(:present)
+
+        newvalue(:deleted) do
+            provider.delete
+        end
     end
 
     newparam(:path, :namevar => true) do
