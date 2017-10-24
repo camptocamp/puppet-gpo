@@ -9,10 +9,27 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
   end
 
   def create
-      # create temp file and apply it
+      # TODO: create temp file and apply it
+      @property_hash[:ensure] = :present
   end
 
   def destroy
+      delete
+      # TODO: make system forget about key
+      @property_hash[:ensure] = :absent
+  end
+
+  def delete
+      # TODO: delete resource
+      @property_hash[:ensure] = :deleted
+  end
+
+  def value
+      @property_hash[:value]
+  end
+
+  def value=(val)
+      create
   end
 
   def self.prefetch(resources)
