@@ -1,0 +1,31 @@
+; ----------------------------------------------------------------------
+; PARSING Computer POLICY
+; Source file:  c:\Windows\System32\GroupPolicy\Machine\Registry.pol
+
+Computer
+Software\Microsoft\Windows\CurrentVersion\Policies\CredUI
+EnumerateAdministrators
+DWORD:0
+
+Computer
+Software\Microsoft\Windows\CurrentVersion\Policies\Explorer
+PreXPSP2ShellProtocolBehavior
+DWORD:0
+
+Computer
+Software\Microsoft\Windows\CurrentVersion\Policies\Explorer
+NoAutorun
+DWORD:1
+
+Computer
+Software\Microsoft\Windows\CurrentVersion\Policies\Explorer
+NoDriveTypeAutoRun
+DWORD:255
+
+Computer
+Software\Microsoft\Windows\CurrentVersion\Policies\Ext
+NoFirsttimeprompt
+DELETE
+
+; PARSING COMPLETED.
+; ----------------------------------------------------------------------
