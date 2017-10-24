@@ -28,14 +28,16 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
               admx_file = path['admx_file'].downcase
               policy_id = path['policy_id'].downcase
               setting_valuename = path['setting_valuename'].downcase
+              value = split_g[3].split(':')[1]
 
               new({
                   :title             => "#{scope}::#{admx_file}::#{policy_id}::#{setting_valuename}",
+                  :ensure            => split_g[3] == 'DELETE' ? :absent : :present,
                   :scope             => scope.to_sym,
                   :admx_file         => admx_file,
                   :policy_id         => policy_id,
                   :setting_valuename => setting_valuename,
-                  :value             => split_g[3].split(':')[1],
+                  :value             => value,
               })
           end
       end.flatten
