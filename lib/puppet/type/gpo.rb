@@ -1,4 +1,4 @@
-require 'puppet_x/gpo'
+require 'puppet_x/gpo/paths'
 
 Puppet::Type.newtype(:gpo) do
     @doc = <<-'EOT'
@@ -51,7 +51,7 @@ Puppet::Type.newtype(:gpo) do
         validate do |val|
             scope = (resource[:scope] || :machine).to_s   # defaults get computed after validation
             path = resource[:path] || "#{scope}::#{resource[:admx_file]}::#{resource[:policy_id]}::#{val}"
-            if PuppetX::Gpo.new.get_item(
+            if PuppetX::Gpo::Paths.new.get_item(
                     scope,
                     resource[:admx_file],
                     resource[:policy_id],
@@ -100,7 +100,7 @@ Puppet::Type.newtype(:gpo) do
             scope = (resource[:scope] || :machine).to_s   # defaults get computed after validation
             path = resource[:path] || "#{scope}::#{resource[:admx_file]}::#{resource[:policy_id]}::#{resource[:setting_valuename]}"
 
-            k = PuppetX::Gpo.new.get_item(
+            k = PuppetX::Gpo::Paths.new.get_item(
                 scope,
                 resource[:admx_file],
                 resource[:policy_id],
