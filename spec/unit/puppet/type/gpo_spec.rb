@@ -30,7 +30,10 @@ describe Puppet::Type.type(:gpo) do
 
         it 'should fail with an invalid path' do
             expect {
-                described_class.new(:title => 'foo')
+                described_class.new(
+                    :title => 'foo',
+                    :value => 'bar'
+                )
             }.to raise_error(Puppet::Error, /Wrong path: 'foo'/)
         end
     end

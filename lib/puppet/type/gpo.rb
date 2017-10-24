@@ -7,15 +7,6 @@ Puppet::Type.newtype(:gpo) do
     end
 
     newparam(:path, :namevar => true) do
-        munge do |val|
-            val.downcase
-        end
-
-        validate do |val|
-            if PuppetX::Gpo.new.item_by_path(val).nil?
-                raise Puppet::Error, _("Wrong path: '#{val}'")
-            end
-        end
     end
 
     newparam(:admx_file, :namevar => true) do
@@ -59,7 +50,14 @@ Puppet::Type.newtype(:gpo) do
 
     newproperty(:value) do
         validate do |val|
-            k = PuppetX::Gpo.new.item_by_path(@resource[:path])
+            path = @resource[:path]
+            path ||= "#{@resource[:admx_file]}::#{@resource[:policy_id]}::#{@resource[:setting_valuename]}"
+
+            k = PuppetX::Gpo.new.get_item(@resource[:admx_file], @resource[:policy_id], @resource[:setting_valuename])
+            if k.nil?
+                raise Puppet::Error, "Wrong path: '#{path}'"
+            end
+
             case k['setting_valuetype']
             when 'REG_DWORD', 'REG_SZ', 'REG_MULTI_SZ'
                 raise Puppet::Error, _("Value should be a string, not '#{val}'") unless val.is_a? String
