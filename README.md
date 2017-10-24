@@ -14,6 +14,19 @@ gpo { 'windowsupdate::autoupdatecfg::allowmuupdateservice':
 }
 ```
 
+## Ensure absence
+
+```puppet
+gpo { 'windowsupdate::autoupdatecfg::allowmuupdateservice':
+  ensure => absent,     # do not manage
+}
+```
+
+```puppet
+gpo { 'windowsupdate::autoupdatecfg::allowmuupdateservice':
+  ensure => deleted,    # ensure registry key is deleted
+}
+```
 
 ## Separate namevars
 
