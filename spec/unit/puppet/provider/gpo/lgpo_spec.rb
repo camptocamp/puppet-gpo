@@ -19,8 +19,16 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
 
     context 'when listing instances' do
         it 'should list instances' do
-            provider.class.expects(:lgpo).once.with('/parse', '/q', '/m', 'C:\Windows\System32\GroupPolicy\Machine\Registry.pol').returns(File.read(File.join(File.dirname(__FILE__), '../../../../fixtures/unit/puppet/provider/gpo/lgpo/machine/full.out')))
-            provider.class.expects(:lgpo).once.with('/parse', '/q', '/u', 'C:\Windows\System32\GroupPolicy\User\Registry.pol').returns(File.read(File.join(File.dirname(__FILE__), '../../../../fixtures/unit/puppet/provider/gpo/lgpo/user/full.out')))
+            provider.class.expects(:lgpo).once.with(
+                '/parse', '/q', '/m', 'C:\Windows\System32\GroupPolicy\Machine\Registry.pol'
+            ).returns(File.read(File.join(
+                File.dirname(__FILE__),
+                '../../../../fixtures/unit/puppet/provider/gpo/lgpo/machine/full.out')))
+            provider.class.expects(:lgpo).once.with(
+                '/parse', '/q', '/u', 'C:\Windows\System32\GroupPolicy\User\Registry.pol'
+            ).returns(File.read(File.join(
+                File.dirname(__FILE__),
+                '../../../../fixtures/unit/puppet/provider/gpo/lgpo/user/full.out')))
             instances = provider.class.instances.map do |i|
                 {
                     :title             => i.get(:title),
@@ -60,6 +68,47 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
                 :setting_valuename => 'notoastapplicationnotificationonlockscreen',
                 :value             => '1',
             })
+        end
+    end
+
+    context 'when creating a resource' do
+        context 'when there is no cse' do
+            it 'should create a resource without /e' do
+                #out_file = 'C:\ProgramData\PuppetLabs\Puppet\var\lgpo_import.txt'
+                out_file = '/dev/null/lgpo_import.txt'
+                require 'stringio'
+                testfile = StringIO.new
+                expect(File).to receive(:open).once.with(out_file, 'w').and_return(testfile)
+                provider.class.expects(:lgpo).once.with(
+                    '/m', out_file,
+                ).returns(nil)
+                expect(File).to receive(:delete).once.with(out_file).and_return(nil)
+                provider.create
+            end
+        end
+
+        context 'when there is a cse' do
+            let(:params) do
+                {
+                    :title    => 'admpwd::pol_admpwd_enabled::admpwdenabled',
+                    :value    => '1',
+                    :provider => 'lgpo',
+                }
+            end
+
+            it 'should create a resource with /e' do
+                #out_file = 'C:\ProgramData\PuppetLabs\Puppet\var\lgpo_import.txt'
+                out_file = '/dev/null/lgpo_import.txt'
+                require 'stringio'
+                testfile = StringIO.new
+                expect(File).to receive(:open).once.with(out_file, 'w').and_return(testfile)
+                provider.class.expects(:lgpo).once.with(
+                    '/m', out_file,
+                    '/e', '{D76B9641-3288-4f75-942D-087DE603E3EA}'
+                ).returns(nil)
+                expect(File).to receive(:delete).once.with(out_file).and_return(nil)
+                provider.create
+            end
         end
     end
 end

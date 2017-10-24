@@ -9,7 +9,32 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
   end
 
   def create
-      # TODO: create temp file and apply it
+      scope = resource[:scope].to_s
+      admx_file = resource[:admx_file]
+      policy_id = resource[:policy_id]
+      setting_valuename = resource[:setting_valuename]
+      value = resource[:value]
+      path = PuppetX::Gpo::Paths.new.get_item(scope, admx_file, policy_id, setting_valuename)
+
+      if path.nil?
+          raise Puppet::Error, "Wrong path: '#{path}'"
+      end
+
+      out_scope = scope == 'machine' ? 'computer' : scope
+      out = "#{out_scope}\n#{path['setting_key']}\n#{'setting_valuename'}\n#{path['setting_valuetype']}:#{value}"
+
+      out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
+      File.open(out_file_path, 'w') do |out_file|
+          out_file.write(out)
+      end
+
+      lgpo_args = ["/#{scope[0]}", out_file_path]
+      if guid = path['policy_cse']
+          lgpo_args << '/e' << guid
+      end
+      lgpo(*lgpo_args)
+      File.delete(out_file_path)
+
       @property_hash[:ensure] = :present
   end
 
