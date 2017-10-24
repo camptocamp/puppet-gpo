@@ -5,15 +5,27 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
   commands :lgpo => 'lgpo.exe'
 
   def exists?
-
+      @property_hash[:ensure] == :present
   end
 
   def create
-
+      # create temp file and apply it
   end
 
   def destroy
+  end
 
+  def self.prefetch(resources)
+      instances.each do |gpo|
+          resources.select { |title, res|
+              res[:scope].downcase == gpo[:scope].downcase &&
+                  res[:admx_file].downcase == gpo[:admx_file].downcase &&
+                  res[:policy_id].downcase == gpo[:policy_id].downcase &&
+                  res[:setting_valuename].downcase == gpo[:setting_valuename].downcase
+          }.map { |name, res|
+              res.provider = gpo
+          }
+      end
   end
 
   def self.instances
