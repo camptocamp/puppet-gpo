@@ -9,6 +9,10 @@ describe Puppet::Type.type(:gpo) do
         'User::WordWheel::CustomSearch::InternetExtensionName'
     }
 
+    let(:valid_both_string_path) {
+        'User::inetres::Advanced_DisableFlipAhead::Enabled'
+    }
+
     let(:valid_hash_path) {
         'advancedfirewall::wf_firewallrules::firewallrules'
     }
@@ -55,6 +59,11 @@ describe Puppet::Type.type(:gpo) do
         it 'should accept a valid scope' do
             res = described_class.new(:title => valid_string_path)
             expect(res[:scope]).to eq(:machine)
+        end
+
+        it 'should accept a valid scope using both' do
+            res = described_class.new(:title => valid_both_string_path)
+            expect(res[:scope]).to eq(:user)
         end
 
         it 'should fail with an invalid scope' do

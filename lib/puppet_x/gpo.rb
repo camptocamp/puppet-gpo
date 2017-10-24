@@ -12,7 +12,7 @@ module PuppetX
 
         def get_item(scope, admx_file, policy_id, setting_valuename)
             valid_paths.select { |p|
-                p['policy_class'].downcase == scope &&
+                (p['policy_class'].downcase == scope || p['policy_class'] == 'Both') &&
                     p['admx_file'].downcase == admx_file &&
                     p['policy_id'].downcase == policy_id &&
                     p['setting_valuename'].downcase == setting_valuename
