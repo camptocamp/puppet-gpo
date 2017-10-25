@@ -111,6 +111,31 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
         end
     end
 
+    context 'when prefetching resources' do
+        it 'should call self.instances' do
+            expect(provider.class).to receive(:instances).and_return([])
+            provider.class.prefetch([])
+        end
+
+        it 'should find existing resources' do
+            stub_lgpo_pol('machine', true)
+            stub_lgpo_pol('user', true)
+
+            fake_res = {
+                :name              => 'machine::inetres::disableactivexfirstprompt::nofirsttimeprompt',
+                :ensure            => 'present',
+                :scope             => :machine,
+                :admx_file         => 'inetres',
+                :policy_id         => 'disableactivexfirstprompt',
+                :setting_valuename => 'nofirsttimeprompt',
+                :value             => '1',
+            }
+
+            expect(fake_res).to receive(:provider=)
+            provider.class.prefetch({ 'machine::inetres::disableactivexfirstprompt::nofirsttimeprompt' => fake_res })
+        end
+    end
+
     context 'when creating a resource' do
         before :each do
             expect(Puppet).to receive(:[]).with(:vardir).and_return('C:\ProgramData\PuppetLabs\Puppet\var')
