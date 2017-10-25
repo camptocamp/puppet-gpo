@@ -64,7 +64,7 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
               value = split_g[3].split(':')[1]
 
               new({
-                  :title             => "#{scope}::#{admx_file}::#{policy_id}::#{setting_valuename}",
+                  :name              => "#{scope}::#{admx_file}::#{policy_id}::#{setting_valuename}",
                   :ensure            => split_g[3] == 'DELETE' ? :deleted : :present,
                   :scope             => scope.to_sym,
                   :admx_file         => admx_file,

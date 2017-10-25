@@ -60,7 +60,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
 
                 instances = provider.class.instances.map do |i|
                     {
-                        :title             => i.get(:title),
+                        :name              => i.get(:name),
                         :ensure            => i.get(:ensure),
                         :scope             => i.get(:scope),
                         :admx_file         => i.get(:admx_file),
@@ -71,7 +71,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
                 end
                 expect(instances.size).to eq(17)
                 expect(instances[0]).to eq({
-                    :title             => 'machine::credui::enumerateadministrators::enumerateadministrators',
+                    :name              => 'machine::credui::enumerateadministrators::enumerateadministrators',
                     :ensure            => :present,
                     :scope             => :machine,
                     :admx_file         => 'credui',
@@ -80,7 +80,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
                     :value             => '0',
                 })
                 expect(instances[4]).to eq({
-                    :title             => 'machine::inetres::disableactivexfirstprompt::nofirsttimeprompt',
+                    :name              => 'machine::inetres::disableactivexfirstprompt::nofirsttimeprompt',
                     :ensure            => :deleted,
                     :scope             => :machine,
                     :admx_file         => 'inetres',
@@ -89,7 +89,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
                     :value             => :absent,
                 })
                 expect(instances[15]).to eq({
-                    :title             => 'user::wpn::nolockscreentoastnotification::notoastapplicationnotificationonlockscreen',
+                    :name              => 'user::wpn::nolockscreentoastnotification::notoastapplicationnotificationonlockscreen',
                     :ensure            => :present,
                     :scope             => :user,
                     :admx_file         => 'wpn',
