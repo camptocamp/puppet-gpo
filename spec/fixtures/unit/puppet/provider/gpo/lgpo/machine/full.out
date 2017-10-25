@@ -47,5 +47,10 @@ Software\Policies\Microsoft\Windows Defender\Exclusions\Paths
 C:\Windows\test3
 SZ:0
 
+Computer
+Software\Policies\Microsoft\Windows Defender\Exclusions\Processes
+*
+DELETEALLVALUES
+
 ; PARSING COMPLETED.
 ; ----------------------------------------------------------------------

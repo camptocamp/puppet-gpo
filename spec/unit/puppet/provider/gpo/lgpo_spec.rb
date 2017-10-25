@@ -78,7 +78,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
                         :value             => i.get(:value),
                     }
                 end
-                expect(instances.size).to eq(18)
+                expect(instances.size).to eq(19)
                 expect(instances[0]).to eq({
                     :name              => 'machine::credui::enumerateadministrators::enumerateadministrators',
                     :ensure            => :present,
@@ -105,13 +105,22 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
                     :policy_id         => 'exclusions_paths',
                     :setting_valuename => 'exclusions_pathslist',
                     :value             => {
-                                            "C:\\Windows\\test2"=>"0",
-                                            "C:\\Windows\\test1"=>"0",
-                                            "C:\\Windows\\test0"=>"0",
-                                            "C:\\Windows\\test3"=>"0",
+                                            'C:\Windows\test2' => '0',
+                                            'C:\Windows\test1' => '0',
+                                            'C:\Windows\test0' => '0',
+                                            'C:\Windows\test3' => '0',
                                         }
                 })
-                expect(instances[16]).to eq({
+                expect(instances[6]).to eq({
+                    :name              => 'machine::windowsdefender::exclusions_processes::exclusions_processeslist',
+                    :ensure            => :deleted,
+                    :scope             => :machine,
+                    :admx_file         => 'windowsdefender',
+                    :policy_id         => 'exclusions_processes',
+                    :setting_valuename => 'exclusions_processeslist',
+                    :value             => :absent,
+                })
+                expect(instances[17]).to eq({
                     :name              => 'user::wpn::nolockscreentoastnotification::notoastapplicationnotificationonlockscreen',
                     :ensure            => :present,
                     :scope             => :user,
