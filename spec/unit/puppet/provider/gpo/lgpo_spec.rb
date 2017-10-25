@@ -26,6 +26,10 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
         File.join(vardir, '/lgpo_import.txt')
     end
 
+    let(:out_polfile) do
+        File.join(vardir, '/lgpo_import.pol')
+    end
+
     def stub_lgpo_pol(scope, present)
         file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
         allow(File).to receive(:file?)   # Catch all calls
@@ -46,10 +50,15 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
         expect(File).to receive(:open).once.with(out_file, 'w').and_yield(file)
         expect(file).to receive(:write).with(content)
 
-        args = ["/#{scope[0]}", out_file]
-        args << '/e' << cse unless cse.nil?
+        args = ["/r", out_file]
+        args << '/w' << out_polfile
         provider.class.expects(:lgpo).once.with(*args).returns(nil)
         expect(File).to receive(:delete).once.with(out_file).and_return(nil)
+
+        args = ["/#{scope[0]}", out_polfile]
+        args << '/e' << cse unless cse.nil?
+        provider.class.expects(:lgpo).once.with(*args).returns(nil)
+        expect(File).to receive(:delete).once.with(out_polfile).and_return(nil)
     end
 
     context 'when listing instances' do
@@ -138,7 +147,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
 
     context 'when creating a resource' do
         before :each do
-            expect(Puppet).to receive(:[]).with(:vardir).and_return('C:\ProgramData\PuppetLabs\Puppet\var')
+            expect(Puppet).to receive(:[]).twice.with(:vardir).and_return('C:\ProgramData\PuppetLabs\Puppet\var')
         end
 
         context 'when there is no cse' do
@@ -168,7 +177,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
 
     context 'when deleting a resource' do
         before :each do
-            expect(Puppet).to receive(:[]).with(:vardir).and_return('C:\ProgramData\PuppetLabs\Puppet\var')
+            expect(Puppet).to receive(:[]).twice.with(:vardir).and_return('C:\ProgramData\PuppetLabs\Puppet\var')
         end
 
         context 'when there is no cse' do

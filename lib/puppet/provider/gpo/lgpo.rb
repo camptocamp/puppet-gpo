@@ -94,16 +94,23 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
       out = "#{out_scope}\n#{path['setting_key']}\n#{'setting_valuename'}\n#{real_val}"
 
       out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
+      out_polfile_path = File.join(Puppet[:vardir], 'lgpo_import.pol')
       File.open(out_file_path, 'w') do |out_file|
           out_file.write(out)
       end
 
-      lgpo_args = ["/#{scope[0]}", out_file_path]
+      # Convert lgpo_import.txt to lgpo_import.pol with lgpo.exe
+      lgpo_args = ['/r', out_file_path, '/w', out_polfile_path]
+      lgpo(*lgpo_args)
+      File.delete(out_file_path)
+
+      # import lgpo_import.pol with lgpo.exe
+      lgpo_args = ["/#{scope[0]}", out_polfile_path]
       if guid = path['policy_cse']
           lgpo_args << '/e' << guid
       end
       lgpo(*lgpo_args)
-      File.delete(out_file_path)
+      File.delete(out_polfile_path)
 
   end
 end
