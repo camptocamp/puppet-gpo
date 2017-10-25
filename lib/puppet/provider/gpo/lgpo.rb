@@ -49,7 +49,11 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
       paths = PuppetX::Gpo::Paths.new
 
       ['machine', 'user'].map do |scope|
-          gpos = lgpo('/parse', '/q', "/#{scope[0]}", "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol")
+          pol_file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
+
+          next [] unless File.file?(pol_file)
+
+          gpos = lgpo('/parse', '/q', "/#{scope[0]}", pol_file)
           gpos.split("\n\n").reject { |l| l.start_with? ';' }.map do |g|
               split_g = g.split("\n")
               path = paths.get_by_key(scope, split_g[1].downcase, split_g[2].downcase)

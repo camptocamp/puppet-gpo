@@ -26,57 +26,77 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
         File.join(vardir, '/lgpo_import.txt')
     end
 
+    def stub_lgpo_pol(scope, present)
+        file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
+        allow(File).to receive(:file?)   # Catch all calls
+        expect(File).to receive(:file?).once.with(file).and_return(present)
+
+        if present
+            provider.class.expects(:lgpo).once.with('/parse', '/q', "/#{scope[0]}", file)
+                .returns(File.read(File.join(
+            File.dirname(__FILE__),
+            "../../../../fixtures/unit/puppet/provider/gpo/lgpo/#{scope}/full.out")))
+        else
+            provider.class.expects(:lgpo).never
+        end
+    end
+
     context 'when listing instances' do
-        it 'should list instances' do
-            provider.class.expects(:lgpo).once.with(
-                '/parse', '/q', '/m', 'C:\Windows\System32\GroupPolicy\Machine\Registry.pol'
-            ).returns(File.read(File.join(
-                File.dirname(__FILE__),
-                '../../../../fixtures/unit/puppet/provider/gpo/lgpo/machine/full.out')))
-            provider.class.expects(:lgpo).once.with(
-                '/parse', '/q', '/u', 'C:\Windows\System32\GroupPolicy\User\Registry.pol'
-            ).returns(File.read(File.join(
-                File.dirname(__FILE__),
-                '../../../../fixtures/unit/puppet/provider/gpo/lgpo/user/full.out')))
-            instances = provider.class.instances.map do |i|
-                {
-                    :title             => i.get(:title),
-                    :ensure            => i.get(:ensure),
-                    :scope             => i.get(:scope),
-                    :admx_file         => i.get(:admx_file),
-                    :policy_id         => i.get(:policy_id),
-                    :setting_valuename => i.get(:setting_valuename),
-                    :value             => i.get(:value),
-                }
+        context 'when the gpo file exists' do
+            it 'should list instances' do
+                stub_lgpo_pol('machine', true)
+                stub_lgpo_pol('user', true)
+
+                instances = provider.class.instances.map do |i|
+                    {
+                        :title             => i.get(:title),
+                        :ensure            => i.get(:ensure),
+                        :scope             => i.get(:scope),
+                        :admx_file         => i.get(:admx_file),
+                        :policy_id         => i.get(:policy_id),
+                        :setting_valuename => i.get(:setting_valuename),
+                        :value             => i.get(:value),
+                    }
+                end
+                expect(instances.size).to eq(17)
+                expect(instances[0]).to eq({
+                    :title             => 'machine::credui::enumerateadministrators::enumerateadministrators',
+                    :ensure            => :present,
+                    :scope             => :machine,
+                    :admx_file         => 'credui',
+                    :policy_id         => 'enumerateadministrators',
+                    :setting_valuename => 'enumerateadministrators',
+                    :value             => '0',
+                })
+                expect(instances[4]).to eq({
+                    :title             => 'machine::inetres::disableactivexfirstprompt::nofirsttimeprompt',
+                    :ensure            => :deleted,
+                    :scope             => :machine,
+                    :admx_file         => 'inetres',
+                    :policy_id         => 'disableactivexfirstprompt',
+                    :setting_valuename => 'nofirsttimeprompt',
+                    :value             => :absent,
+                })
+                expect(instances[15]).to eq({
+                    :title             => 'user::wpn::nolockscreentoastnotification::notoastapplicationnotificationonlockscreen',
+                    :ensure            => :present,
+                    :scope             => :user,
+                    :admx_file         => 'wpn',
+                    :policy_id         => 'nolockscreentoastnotification',
+                    :setting_valuename => 'notoastapplicationnotificationonlockscreen',
+                    :value             => '1',
+                })
             end
-            expect(instances.size).to eq(17)
-            expect(instances[0]).to eq({
-                :title             => 'machine::credui::enumerateadministrators::enumerateadministrators',
-                :ensure            => :present,
-                :scope             => :machine,
-                :admx_file         => 'credui',
-                :policy_id         => 'enumerateadministrators',
-                :setting_valuename => 'enumerateadministrators',
-                :value             => '0',
-            })
-            expect(instances[4]).to eq({
-                :title             => 'machine::inetres::disableactivexfirstprompt::nofirsttimeprompt',
-                :ensure            => :deleted,
-                :scope             => :machine,
-                :admx_file         => 'inetres',
-                :policy_id         => 'disableactivexfirstprompt',
-                :setting_valuename => 'nofirsttimeprompt',
-                :value             => :absent,
-            })
-            expect(instances[15]).to eq({
-                :title             => 'user::wpn::nolockscreentoastnotification::notoastapplicationnotificationonlockscreen',
-                :ensure            => :present,
-                :scope             => :user,
-                :admx_file         => 'wpn',
-                :policy_id         => 'nolockscreentoastnotification',
-                :setting_valuename => 'notoastapplicationnotificationonlockscreen',
-                :value             => '1',
-            })
+        end
+
+        context 'when the gpo file does not exist' do
+            it 'should return no instances' do
+                stub_lgpo_pol('machine', false)
+                stub_lgpo_pol('user', false)
+
+                instances = provider.class.instances
+                expect(instances.size).to eq(0)
+            end
         end
     end
 
