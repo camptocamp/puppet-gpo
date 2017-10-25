@@ -35,10 +35,10 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
   def self.prefetch(resources)
       instances.each do |gpo|
           resources.select { |title, res|
-              res[:scope].downcase == gpo[:scope].downcase &&
-                  res[:admx_file].downcase == gpo[:admx_file].downcase &&
-                  res[:policy_id].downcase == gpo[:policy_id].downcase &&
-                  res[:setting_valuename].downcase == gpo[:setting_valuename].downcase
+              res[:scope].downcase == gpo.get(:scope).downcase &&
+                  res[:admx_file].downcase == gpo.get(:admx_file).downcase &&
+                  res[:policy_id].downcase == gpo.get(:policy_id).downcase &&
+                  res[:setting_valuename].downcase == gpo.(:setting_valuename).downcase
           }.map { |name, res|
               res.provider = gpo
           }
