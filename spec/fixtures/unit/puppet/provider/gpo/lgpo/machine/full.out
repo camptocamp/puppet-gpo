@@ -27,5 +27,25 @@ Software\Microsoft\Windows\CurrentVersion\Policies\Ext
 NoFirsttimeprompt
 DELETE
 
+Computer
+Software\Policies\Microsoft\Windows Defender\Exclusions\Paths
+C:\Windows\test0
+SZ:0
+
+Computer
+Software\Policies\Microsoft\Windows Defender\Exclusions\Paths
+C:\Windows\test1
+SZ:0
+
+Computer
+Software\Policies\Microsoft\Windows Defender\Exclusions\Paths
+C:\Windows\test2
+SZ:0
+
+Computer
+Software\Policies\Microsoft\Windows Defender\Exclusions\Paths
+C:\Windows\test3
+SZ:0
+
 ; PARSING COMPLETED.
 ; ----------------------------------------------------------------------

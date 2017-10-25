@@ -50,8 +50,9 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
 
       ['machine', 'user'].map do |scope|
           pol_file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
-
           next [] unless File.file?(pol_file)
+          
+          resources = Hash.new
 
           gpos = lgpo('/parse', '/q', "/#{scope[0]}", pol_file)
           gpos.split("\n\n").reject { |l| l.start_with? ';' }.map do |g|
@@ -61,19 +62,41 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
               admx_file = path['admx_file'].downcase
               policy_id = path['policy_id'].downcase
               setting_valuename = path['setting_valuename'].downcase
+              setting_valuetype = path['setting_valuetype']
               value = split_g[3].split(':')[1]
+              name = "#{scope}::#{admx_file}::#{policy_id}::#{setting_valuename}"
 
-              new({
-                  :name              => "#{scope}::#{admx_file}::#{policy_id}::#{setting_valuename}",
-                  :ensure            => split_g[3] == 'DELETE' ? :deleted : :present,
-                  :scope             => scope.to_sym,
-                  :admx_file         => admx_file,
-                  :policy_id         => policy_id,
-                  :setting_valuename => setting_valuename,
-                  :value             => value,
-              })
+              if setting_valuetype == '[HASHTABLE]'
+                hash_value = {split_g[2] => value}
+                if resources.has_key?(name)
+                    resources[name][:value].merge!(hash_value)
+                else
+                    resources[name] = {
+                        :name              => name,
+                        :ensure            => split_g[3] == 'DELETE' ? :deleted : :present,
+                        :scope             => scope.to_sym,
+                        :admx_file         => admx_file,
+                        :policy_id         => policy_id,
+                        :setting_valuename => setting_valuename,
+                        :value             => hash_value,
+                    }
+                end
+              else
+                 resources[name] = {
+                    :name              => name,
+                    :ensure            => split_g[3] == 'DELETE' ? :deleted : :present,
+                    :scope             => scope.to_sym,
+                    :admx_file         => admx_file,
+                    :policy_id         => policy_id,
+                    :setting_valuename => setting_valuename,
+                    :value             => value,
+                }
+              end
+              
           end
+          resources.map{|k, v| new(v)}
       end.flatten
+      
   end
 
   def set_value(val)

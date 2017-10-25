@@ -24,7 +24,7 @@ module PuppetX
                 valid_paths.select { |p|
                     (p['policy_class'].downcase == scope || p['policy_class'] == 'Both') &&
                         p['setting_key'].downcase == registry_key &&
-                        p['setting_valuename'].downcase == setting_valuename
+                        (p['setting_valuename'].downcase == setting_valuename || p['setting_valuetype'].upcase == '[HASHTABLE]')
                 }[0]
             end
         end

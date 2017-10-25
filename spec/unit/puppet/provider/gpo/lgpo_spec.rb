@@ -78,7 +78,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
                         :value             => i.get(:value),
                     }
                 end
-                expect(instances.size).to eq(17)
+                expect(instances.size).to eq(18)
                 expect(instances[0]).to eq({
                     :name              => 'machine::credui::enumerateadministrators::enumerateadministrators',
                     :ensure            => :present,
@@ -97,7 +97,21 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
                     :setting_valuename => 'nofirsttimeprompt',
                     :value             => :absent,
                 })
-                expect(instances[15]).to eq({
+                expect(instances[5]).to eq({
+                    :name              => 'machine::windowsdefender::exclusions_paths::exclusions_pathslist',
+                    :ensure            => :present,
+                    :scope             => :machine,
+                    :admx_file         => 'windowsdefender',
+                    :policy_id         => 'exclusions_paths',
+                    :setting_valuename => 'exclusions_pathslist',
+                    :value             => {
+                                            "C:\\Windows\\test2"=>"0",
+                                            "C:\\Windows\\test1"=>"0",
+                                            "C:\\Windows\\test0"=>"0",
+                                            "C:\\Windows\\test3"=>"0",
+                                        }
+                })
+                expect(instances[16]).to eq({
                     :name              => 'user::wpn::nolockscreentoastnotification::notoastapplicationnotificationonlockscreen',
                     :ensure            => :present,
                     :scope             => :user,
