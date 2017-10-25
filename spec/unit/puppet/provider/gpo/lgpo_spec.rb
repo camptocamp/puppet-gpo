@@ -41,6 +41,17 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
         end
     end
 
+    def stub_create(scope, content, cse)
+        file = StringIO.new
+        expect(File).to receive(:open).once.with(out_file, 'w').and_yield(file)
+        expect(file).to receive(:write).with(content)
+
+        args = ["/#{scope[0]}", out_file]
+        args << '/e' << cse unless cse.nil?
+        provider.class.expects(:lgpo).once.with(*args).returns(nil)
+        expect(File).to receive(:delete).once.with(out_file).and_return(nil)
+    end
+
     context 'when listing instances' do
         context 'when the gpo file exists' do
             it 'should list instances' do
@@ -107,13 +118,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
 
         context 'when there is no cse' do
             it 'should create a resource without /e' do
-                file = StringIO.new
-                expect(File).to receive(:open).once.with(out_file, 'w').and_yield(file)
-                expect(file).to receive(:write).with("computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nsetting_valuename\nDWORD:1")
-                provider.class.expects(:lgpo).once.with(
-                    '/m', out_file,
-                ).returns(nil)
-                expect(File).to receive(:delete).once.with(out_file).and_return(nil)
+                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nsetting_valuename\nDWORD:1", nil)
 
                 provider.create
             end
@@ -129,15 +134,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
             end
 
             it 'should create a resource with /e' do
-                file = StringIO.new
-                expect(File).to receive(:open).once.with(out_file, 'w').and_yield(file)
-                expect(file).to receive(:write).with("computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nsetting_valuename\nDWORD:1")
-
-                provider.class.expects(:lgpo).once.with(
-                    '/m', out_file,
-                    '/e', '{D76B9641-3288-4f75-942D-087DE603E3EA}'
-                ).returns(nil)
-                expect(File).to receive(:delete).once.with(out_file).and_return(nil)
+                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nsetting_valuename\nDWORD:1", '{D76B9641-3288-4f75-942D-087DE603E3EA}')
 
                 provider.create
             end
@@ -151,13 +148,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
 
         context 'when there is no cse' do
             it 'should create a resource without /e' do
-                file = StringIO.new
-                expect(File).to receive(:open).once.with(out_file, 'w').and_yield(file)
-                expect(file).to receive(:write).with("computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nsetting_valuename\nDELETE")
-                provider.class.expects(:lgpo).once.with(
-                    '/m', out_file,
-                ).returns(nil)
-                expect(File).to receive(:delete).once.with(out_file).and_return(nil)
+                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nsetting_valuename\nDELETE", nil)
 
                 provider.delete
             end
@@ -173,15 +164,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
             end
 
             it 'should create a resource with /e' do
-                file = StringIO.new
-                expect(File).to receive(:open).once.with(out_file, 'w').and_yield(file)
-                expect(file).to receive(:write).with("computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nsetting_valuename\nDELETE")
-
-                provider.class.expects(:lgpo).once.with(
-                    '/m', out_file,
-                    '/e', '{D76B9641-3288-4f75-942D-087DE603E3EA}'
-                ).returns(nil)
-                expect(File).to receive(:delete).once.with(out_file).and_return(nil)
+                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nsetting_valuename\nDELETE", '{D76B9641-3288-4f75-942D-087DE603E3EA}')
 
                 provider.delete
             end
