@@ -14,8 +14,8 @@ Puppet::Type.newtype(:gpo) do
         end
     end
 
-    newparam(:path, :namevar => true) do
-        desc 'The GPO path, used for uniqueness.'
+    newparam(:name, :namevar => true) do
+        desc 'The GPO name, used for uniqueness.'
     end
 
     newparam(:scope, :namevar => true) do
@@ -54,14 +54,14 @@ Puppet::Type.newtype(:gpo) do
 
         validate do |val|
             scope = (resource[:scope] || :machine).to_s   # defaults get computed after validation
-            path = resource[:path] || "#{scope}::#{resource[:admx_file]}::#{resource[:policy_id]}::#{val}"
+            name = resource[:name] || "#{scope}::#{resource[:admx_file]}::#{resource[:policy_id]}::#{val}"
             if PuppetX::Gpo::Paths.new.get_item(
                     scope,
                     resource[:admx_file],
                     resource[:policy_id],
                     val
             ).nil?
-                raise Puppet::Error, "Wrong path: '#{path}'"
+                raise Puppet::Error, "Not a valid path: '#{name}'"
             end
         end
     end
@@ -72,7 +72,7 @@ Puppet::Type.newtype(:gpo) do
             [
                 /^(([^:]+)::([^:]+)::([^:]+)::([^:]+))$/,
                 [
-                    [ :path, identity ],
+                    [ :name, identity ],
                     [ :scope, identity ],
                     [ :admx_file, identity ],
                     [ :policy_id, identity ],
@@ -82,7 +82,7 @@ Puppet::Type.newtype(:gpo) do
             [
                 /^(([^:]+)::([^:]+)::([^:]+))$/,
                 [
-                    [ :path, identity ],
+                    [ :name, identity ],
                     [ :admx_file, identity ],
                     [ :policy_id, identity ],
                     [ :setting_valuename, identity ],
@@ -91,7 +91,7 @@ Puppet::Type.newtype(:gpo) do
             [
                 /(.*)/,
                 [
-                    [ :path, identity ],
+                    [ :name, identity ],
                 ]
             ]
         ]
@@ -102,7 +102,7 @@ Puppet::Type.newtype(:gpo) do
 
         validate do |val|
             scope = (resource[:scope] || :machine).to_s   # defaults get computed after validation
-            path = resource[:path] || "#{scope}::#{resource[:admx_file]}::#{resource[:policy_id]}::#{resource[:setting_valuename]}"
+            name = resource[:name] || "#{scope}::#{resource[:admx_file]}::#{resource[:policy_id]}::#{resource[:setting_valuename]}"
 
             k = PuppetX::Gpo::Paths.new.get_item(
                 scope,
@@ -111,7 +111,7 @@ Puppet::Type.newtype(:gpo) do
                 resource[:setting_valuename]
             )
             if k.nil?
-                raise Puppet::Error, "Wrong path: '#{path}'"
+                raise Puppet::Error, "Not a valid path: '#{name}'"
             end
 
             case k['setting_valuetype']

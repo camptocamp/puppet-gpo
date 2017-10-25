@@ -19,7 +19,7 @@ describe Puppet::Type.type(:gpo) do
 
     context 'when using namevar' do
         it 'should have namevars' do
-            expect(described_class.key_attributes).to eq([:path, :scope, :admx_file, :policy_id, :setting_valuename])
+            expect(described_class.key_attributes).to eq([:name, :scope, :admx_file, :policy_id, :setting_valuename])
         end
 
         it 'should accept a composite namevar with default scope' do
@@ -39,10 +39,10 @@ describe Puppet::Type.type(:gpo) do
         end
     end
 
-    context 'when validating path' do
+    context 'when validating name' do
         it 'should accept a valid path' do
             res = described_class.new(:title => valid_string_path)
-            expect(res[:path]).to eq(valid_string_path)
+            expect(res[:name]).to eq(valid_string_path)
         end
 
         it 'should fail with an invalid path' do
@@ -51,7 +51,7 @@ describe Puppet::Type.type(:gpo) do
                     :title => 'foo',
                     :value => 'bar',
                 )
-            }.to raise_error(Puppet::Error, /Wrong path: 'foo'/)
+            }.to raise_error(Puppet::Error, /Not a valid path: 'foo'/)
         end
     end
 
@@ -88,7 +88,7 @@ describe Puppet::Type.type(:gpo) do
                     :title => 'foo::autoupdatecfg::allowmuupdateservice',
                     :value => 'bar'
                 )
-            }.to raise_error(Puppet::Error, /Wrong path: 'foo::autoupdatecfg::allowmuupdateservice'/)
+            }.to raise_error(Puppet::Error, /Not a valid path: 'foo::autoupdatecfg::allowmuupdateservice'/)
         end
     end
 
