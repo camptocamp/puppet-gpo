@@ -1,0 +1,19 @@
+{
+  "name": "camptocamp-gpo",
+  "version": "0.1.0",
+  "author": "Camptocamp",
+  "summary": "Puppet GPO module",
+  "license": "Apache-2.0",
+  "source": "https://github.com/camptocamp/puppet-gpo",
+  "project_page": "https://github.com/camptocamp/puppet-gpo",
+  "issues_url": "https://github.com/camptocamp/puppet-gpo/issues",
+  "dependencies": [
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "Windows",
+      "operatingsystemrelease": [
+      ]
+    }
+  ]
+}
