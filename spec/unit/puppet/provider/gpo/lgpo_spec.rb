@@ -152,7 +152,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
 
         context 'when there is no cse' do
             it 'should create a resource without /e' do
-                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nsetting_valuename\nDWORD:1", nil)
+                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nAllowMUUpdateService\nDWORD:1", nil)
 
                 provider.create
             end
@@ -168,7 +168,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
             end
 
             it 'should create a resource with /e' do
-                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nsetting_valuename\nDWORD:1", '{D76B9641-3288-4f75-942D-087DE603E3EA}')
+                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nAdmPwdEnabled\nDWORD:1", '{D76B9641-3288-4f75-942D-087DE603E3EA}')
 
                 provider.create
             end
@@ -182,7 +182,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
 
         context 'when there is no cse' do
             it 'should create a resource without /e' do
-                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nsetting_valuename\nDELETE", nil)
+                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nAllowMUUpdateService\nDELETE", nil)
 
                 provider.delete
             end
@@ -198,7 +198,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
             end
 
             it 'should create a resource with /e' do
-                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nsetting_valuename\nDELETE", '{D76B9641-3288-4f75-942D-087DE603E3EA}')
+                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nAdmPwdEnabled\nDELETE", '{D76B9641-3288-4f75-942D-087DE603E3EA}')
 
                 provider.delete
             end

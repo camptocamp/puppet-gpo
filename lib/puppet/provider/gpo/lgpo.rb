@@ -91,7 +91,7 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
 
       real_val = val == 'DELETE' ? val : "#{path['setting_valuetype'].gsub('REG_', '')}:#{val}"
 
-      out = "#{out_scope}\n#{path['setting_key']}\n#{'setting_valuename'}\n#{real_val}"
+      out = "#{out_scope}\n#{path['setting_key']}\n#{path['setting_valuename']}\n#{real_val}"
 
       out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
       out_polfile_path = File.join(Puppet[:vardir], 'lgpo_import.pol')
