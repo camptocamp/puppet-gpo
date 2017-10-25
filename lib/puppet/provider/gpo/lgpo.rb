@@ -104,16 +104,20 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     policy_id = resource[:policy_id]
     setting_valuename = resource[:setting_valuename]
     path = PuppetX::Gpo::Paths.new.get_item(scope, admx_file, policy_id, setting_valuename)
+    setting_valuetype = path['setting_valuetype']
 
     if path.nil?
       raise Puppet::Error, "Wrong path: '#{path}'"
     end
 
     out_scope = scope == 'machine' ? 'computer' : scope
+    
+    delete_value = setting_valuetype == '[HASHTABLE]' ? 'DELETEALLVALUES' : 'DELETE'
 
-    real_val = val == 'DELETE' ? val : "#{path['setting_valuetype'].gsub('REG_', '')}:#{val}"
+    real_val = val == 'DELETE' ? delete_value : "#{path['setting_valuetype'].gsub('REG_', '')}:#{val}"
+    setting_valuename = real_val == 'DELETEALLVALUES' ? '*' : path['setting_valuename']
 
-    out = "#{out_scope}\n#{path['setting_key']}\n#{path['setting_valuename']}\n#{real_val}"
+    out = "#{out_scope}\n#{path['setting_key']}\n#{setting_valuename}\n#{real_val}"
 
     out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
     out_polfile_path = File.join(Puppet[:vardir], 'lgpo_import.pol')

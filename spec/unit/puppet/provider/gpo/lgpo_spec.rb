@@ -211,6 +211,21 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
             end
         end
 
+        context 'when we need to delete a HASHTABLE instance' do
+            let(:params) do
+                {
+                    :title    => 'machine::windowsdefender::exclusions_processes::exclusions_processeslist',
+                    :ensure   => :deleted,
+                    :provider => 'lgpo',
+                }
+            end
+            it 'should create a resource without /e' do
+                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows Defender\\Exclusions\\Processes\n*\nDELETEALLVALUES", nil)
+
+                provider.delete
+            end
+        end
+
         context 'when there is a cse' do
             let(:params) do
                 {
