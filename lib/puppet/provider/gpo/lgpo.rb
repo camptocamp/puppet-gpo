@@ -38,7 +38,7 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
               res[:scope].downcase == gpo.get(:scope).downcase &&
                   res[:admx_file].downcase == gpo.get(:admx_file).downcase &&
                   res[:policy_id].downcase == gpo.get(:policy_id).downcase &&
-                  res[:setting_valuename].downcase == gpo.(:setting_valuename).downcase
+                  res[:setting_valuename].downcase == gpo.get(:setting_valuename).downcase
           }.map { |name, res|
               res.provider = gpo
           }
