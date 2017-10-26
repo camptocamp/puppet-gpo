@@ -1,6 +1,8 @@
 GPO
 ===
 
+[![Puppet Forge Version](http://img.shields.io/puppetforge/v/camptocamp/gpo.svg)](https://forge.puppetlabs.com/camptocamp/gpo)
+[![Puppet Forge Downloads](http://img.shields.io/puppetforge/dt/camptocamp/gpo.svg)](https://forge.puppetlabs.com/camptocamp/gpo)
 [![Build Status](https://img.shields.io/travis/camptocamp/puppet-gpo/master.svg)](https://travis-ci.org/camptocamp/puppet-gpo)
 [![Coverage Status](https://img.shields.io/coveralls/github/camptocamp/puppet-gpo.svg)](https://coveralls.io/r/camptocamp/puppet-gpo?branch=master)
 
