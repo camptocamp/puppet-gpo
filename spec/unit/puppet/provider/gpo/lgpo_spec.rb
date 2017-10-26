@@ -60,6 +60,25 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
         provider.class.expects(:lgpo).once.with(*args).returns(nil)
         expect(File).to receive(:delete).once.with(out_polfile).and_return(nil)
     end
+    def hash_delete(scope, content, cse)
+        file = StringIO.new
+        allow(File).to receive(:open).once.with(out_file, 'w').and_yield(file)
+        allow(file).to receive(:write).with(content)
+
+        stub_lgpo_pol(scope, true)
+        allow(file).to receive(:open).at_least(:once).with(out_file, 'a').and_yield(file)
+        allow(file).to receive(:write).at_least(:once)
+
+        args = ["/r", out_file]
+        args << '/w' << out_polfile
+        provider.class.expects(:lgpo).once.with(*args).returns(nil)
+        expect(File).to receive(:delete).once.with(out_file).and_return(nil)
+
+        args = ["/#{scope[0]}", out_polfile]
+        args << '/e' << cse unless cse.nil?
+        provider.class.expects(:lgpo).once.with(*args).returns(nil)
+        expect(File).to receive(:delete).once.with(out_polfile).and_return(nil)
+    end
 
     context 'when listing instances' do
         context 'when the gpo file exists' do
@@ -211,21 +230,6 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
             end
         end
 
-        context 'when we need to delete a HASHTABLE instance' do
-            let(:params) do
-                {
-                    :title    => 'machine::windowsdefender::exclusions_processes::exclusions_processeslist',
-                    :ensure   => :deleted,
-                    :provider => 'lgpo',
-                }
-            end
-            it 'should create a resource without /e' do
-                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows Defender\\Exclusions\\Processes\n*\nDELETEALLVALUES", nil)
-
-                provider.delete
-            end
-        end
-
         context 'when there is a cse' do
             let(:params) do
                 {
@@ -237,6 +241,26 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
 
             it 'should create a resource with /e' do
                 stub_create('machine', "computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nAdmPwdEnabled\nDELETE", '{D76B9641-3288-4f75-942D-087DE603E3EA}')
+
+                provider.delete
+            end
+        end
+    end
+    context 'when deleting a hash resource' do
+        before :each do
+            expect(Puppet).to receive(:[]).exactly(3).times.with(:vardir).and_return('C:\ProgramData\PuppetLabs\Puppet\var')
+        end
+        
+        context 'when we need to delete a HASHTABLE instance' do
+            let(:params) do
+                {
+                    :title    => 'machine::windowsdefender::exclusions_processes::exclusions_processeslist',
+                    :ensure   => :deleted,
+                    :provider => 'lgpo',
+                }
+            end
+            it 'should create a resource without /e' do
+                hash_delete('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows Defender\\Exclusions\\Processes\n*\nDELETEALLVALUES", nil)
 
                 provider.delete
             end

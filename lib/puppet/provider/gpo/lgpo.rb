@@ -125,6 +125,8 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
       out_file.write(out)
     end
 
+    remove_key(path['setting_key'], scope) if real_val == 'DELETEALLVALUES'
+
     # Convert lgpo_import.txt to lgpo_import.pol with lgpo.exe
     lgpo_args = ['/r', out_file_path, '/w', out_polfile_path]
     lgpo(*lgpo_args)
@@ -137,5 +139,19 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     end
     lgpo(*lgpo_args)
     File.delete(out_polfile_path)
+  end
+
+  def remove_key(key, scope)
+    pol_file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
+    out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
+    gpos = lgpo('/parse', '/q', "/#{scope[0]}", pol_file)
+    gpos.split("\n\n").reject { |l| l.start_with? ';' }.each do |g|
+      split_g = g.split("\n")
+      unless split_g[1] == key
+        File.open(out_file_path, 'a') do |out_file|
+          out_file.write(split_g)
+        end
+      end
+    end
   end
 end
