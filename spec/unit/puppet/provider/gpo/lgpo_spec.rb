@@ -247,7 +247,8 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
 
             it 'should create two entries in LGPO import file' do
                 stub_create('machine', "Computer\nSoftware\\Policies\\Microsoft\\Windows Defender\\Exclusions\\Processes\nc:\\windows\\process0.exe\nSZ:0\n\nComputer\nSoftware\\Policies\\Microsoft\\Windows Defender\\Exclusions\\Processes\nc:\\windows\\process1.exe\nSZ:0", nil)
-
+                pol_file = "C:\\Windows\\System32\\GroupPolicy\\Machine\\Registry.pol"
+                expect(File).to receive(:delete).once.with(pol_file).and_return(nil)
                 provider.create
             end
         end

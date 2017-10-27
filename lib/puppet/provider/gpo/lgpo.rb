@@ -133,14 +133,14 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
       out_file.write(out.join("\n\n"))
     end
 
-    remove_key(path['setting_key'], scope) if real_val == 'DELETEALLVALUES'
+    remove_key(path['setting_key'], scope) if setting_valuetype == '[HASHTABLE]'
 
     # Convert lgpo_import.txt to lgpo_import.pol with lgpo.exe
     lgpo_args = ['/r', out_file_path, '/w', out_polfile_path]
     lgpo(*lgpo_args)
     File.delete(out_file_path)
 
-    if real_val == 'DELETEALLVALUES'
+    if setting_valuetype == '[HASHTABLE]'
         pol_file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
         File.delete(pol_file)
     end
