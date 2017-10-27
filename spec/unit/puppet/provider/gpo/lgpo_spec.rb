@@ -60,19 +60,38 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
         provider.class.expects(:lgpo).once.with(*args).returns(nil)
         expect(File).to receive(:delete).once.with(out_polfile).and_return(nil)
     end
-    def hash_delete(scope, content, cse)
-        file = StringIO.new
-        allow(File).to receive(:open).once.with(out_file, 'w').and_yield(file)
-        allow(file).to receive(:write).with(content)
 
-        stub_lgpo_pol(scope, true)
-        allow(file).to receive(:open).at_least(:once).with(out_file, 'a').and_yield(file)
-        allow(file).to receive(:write).at_least(:once)
+    def stub_hash_delete(scope, content, cse)
+        # This is the initial write to the gpo_import_file which writes the deleteallvalues statement for a hashed instance
+        lgpo_import_file = StringIO.new
+        expect(File).to receive(:open).once.with(out_file, 'w').and_yield(lgpo_import_file)
+        expect(lgpo_import_file).to receive(:write).with(content)
+
+        # pol file should get read one time initiated by the lgpo.exe call
+        pol_file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
+        allow(File).to receive(:file?)   # Catch all calls
+        expect(File).to receive(:file?).once.with(pol_file).and_return(true)
+
+        # the stub for the pol lgpo call needs to be added here in order to simulate output
+        if true
+            provider.class.expects(:lgpo).once.with('/parse', '/q', "/#{scope[0]}", pol_file)
+                .returns(File.read(File.join(
+            File.dirname(__FILE__),
+            "../../../../fixtures/unit/puppet/provider/gpo/lgpo/#{scope}/full.out")))
+        else
+            provider.class.expects(:lgpo).never
+        end
+
+        # This is the subsequent writes to the lgpo file with the filtered content from the parsing
+        expect(File).to receive(:open).once.with(out_file, 'a').and_yield(lgpo_import_file)
+        expect(lgpo_import_file).to receive(:write).at_least(:once)
 
         args = ["/r", out_file]
         args << '/w' << out_polfile
         provider.class.expects(:lgpo).once.with(*args).returns(nil)
         expect(File).to receive(:delete).once.with(out_file).and_return(nil)
+
+        expect(File).to receive(:delete).once.with(pol_file).and_return(nil)
 
         args = ["/#{scope[0]}", out_polfile]
         args << '/e' << cse unless cse.nil?
@@ -260,7 +279,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
                 }
             end
             it 'should create a resource without /e' do
-                hash_delete('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows Defender\\Exclusions\\Processes\n*\nDELETEALLVALUES", nil)
+                stub_hash_delete('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows Defender\\Exclusions\\Processes\n*\nDELETEALLVALUES", nil)
 
                 provider.delete
             end
