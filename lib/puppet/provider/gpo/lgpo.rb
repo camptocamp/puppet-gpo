@@ -5,7 +5,7 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
   commands :lgpo => 'lgpo.exe'
 
   def exists?
-    @property_hash[:ensure] == :present
+    @property_hash[:ensure] == :present || @property_hash[:ensure] == :deleted
   end
 
   def create
@@ -110,19 +110,27 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
       raise Puppet::Error, "Wrong path: '#{path}'"
     end
 
-    out_scope = scope == 'machine' ? 'computer' : scope
+    out_scope = (scope == 'machine' ? 'computer' : scope).capitalize
     
     delete_value = setting_valuetype == '[HASHTABLE]' ? 'DELETEALLVALUES' : 'DELETE'
+    
+    out = Array.new
+    if setting_valuetype == '[HASHTABLE]' and val != 'DELETE'
+      val.each do |k, v|
+        out << "#{out_scope}\n#{path['setting_key']}\n#{k}\nSZ:#{v}"
+      end
+    else  
+      real_val = val == 'DELETE' ? delete_value : "#{path['setting_valuetype'].gsub('REG_', '')}:#{val}"
+      setting_valuename = real_val == 'DELETEALLVALUES' ? '*' : path['setting_valuename']
 
-    real_val = val == 'DELETE' ? delete_value : "#{path['setting_valuetype'].gsub('REG_', '')}:#{val}"
-    setting_valuename = real_val == 'DELETEALLVALUES' ? '*' : path['setting_valuename']
+      out << "#{out_scope}\n#{path['setting_key']}\n#{setting_valuename}\n#{real_val}"
 
-    out = "#{out_scope}\n#{path['setting_key']}\n#{setting_valuename}\n#{real_val}"
+    end
 
     out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
     out_polfile_path = File.join(Puppet[:vardir], 'lgpo_import.pol')
     File.open(out_file_path, 'w') do |out_file|
-      out_file.write(out)
+      out_file.write(out.join("\n\n"))
     end
 
     remove_key(path['setting_key'], scope) if real_val == 'DELETEALLVALUES'
@@ -155,7 +163,7 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
       gpos.split("\n\n").reject { |l| l.start_with? ';' }.each do |g|
         split_g = g.split("\n")
         unless split_g[1] == key
-          out_file.write(split_g)
+          out_file.write("\n\n#{g}")
         end
       end
     end

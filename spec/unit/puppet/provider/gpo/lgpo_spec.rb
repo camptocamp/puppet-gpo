@@ -91,6 +91,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
         provider.class.expects(:lgpo).once.with(*args).returns(nil)
         expect(File).to receive(:delete).once.with(out_file).and_return(nil)
 
+        # Polfile needs to be deleted so a fresh import can be done from the filtered lgpo file
         expect(File).to receive(:delete).once.with(pol_file).and_return(nil)
 
         args = ["/#{scope[0]}", out_polfile]
@@ -213,7 +214,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
 
         context 'when there is no cse' do
             it 'should create a resource without /e' do
-                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nAllowMUUpdateService\nDWORD:1", nil)
+                stub_create('machine', "Computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nAllowMUUpdateService\nDWORD:1", nil)
 
                 provider.create
             end
@@ -229,7 +230,23 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
             end
 
             it 'should create a resource with /e' do
-                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nAdmPwdEnabled\nDWORD:1", '{D76B9641-3288-4f75-942D-087DE603E3EA}')
+                stub_create('machine', "Computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nAdmPwdEnabled\nDWORD:1", '{D76B9641-3288-4f75-942D-087DE603E3EA}')
+
+                provider.create
+            end
+        end
+
+        context 'when resource contain a hash value' do
+            let(:params) do
+                {
+                    :title    => 'windowsdefender::exclusions_processes::exclusions_processeslist',
+                    :value    => {'c:\windows\process0.exe' => '0', 'c:\windows\process1.exe' => '0',},
+                    :provider => 'lgpo',
+                }
+            end
+
+            it 'should create two entries in LGPO import file' do
+                stub_create('machine', "Computer\nSoftware\\Policies\\Microsoft\\Windows Defender\\Exclusions\\Processes\nc:\\windows\\process0.exe\nSZ:0\n\nComputer\nSoftware\\Policies\\Microsoft\\Windows Defender\\Exclusions\\Processes\nc:\\windows\\process1.exe\nSZ:0", nil)
 
                 provider.create
             end
@@ -243,7 +260,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
 
         context 'when there is no cse' do
             it 'should create a resource without /e' do
-                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nAllowMUUpdateService\nDELETE", nil)
+                stub_create('machine', "Computer\nSoftware\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\nAllowMUUpdateService\nDELETE", nil)
 
                 provider.delete
             end
@@ -259,7 +276,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
             end
 
             it 'should create a resource with /e' do
-                stub_create('machine', "computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nAdmPwdEnabled\nDELETE", '{D76B9641-3288-4f75-942D-087DE603E3EA}')
+                stub_create('machine', "Computer\nSoftware\\Policies\\Microsoft Services\\AdmPwd\nAdmPwdEnabled\nDELETE", '{D76B9641-3288-4f75-942D-087DE603E3EA}')
 
                 provider.delete
             end
@@ -279,7 +296,7 @@ describe Puppet::Type.type(:gpo).provider(:lgpo) do
                 }
             end
             it 'should create a resource without /e' do
-                stub_hash_delete('machine', "computer\nSoftware\\Policies\\Microsoft\\Windows Defender\\Exclusions\\Processes\n*\nDELETEALLVALUES", nil)
+                stub_hash_delete('machine', "Computer\nSoftware\\Policies\\Microsoft\\Windows Defender\\Exclusions\\Processes\n*\nDELETEALLVALUES", nil)
 
                 provider.delete
             end
