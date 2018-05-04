@@ -5,7 +5,11 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
   commands :lgpo => 'lgpo.exe'
 
   def exists?
-    @property_hash[:ensure] == :present || @property_hash[:ensure] == :deleted
+    @property_hash[:ensure] == :present
+  end
+
+  def deleted?
+    @property_hash[:ensure] == :deleted
   end
 
   def create
