@@ -55,7 +55,7 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     ['machine', 'user'].map do |scope|
       pol_file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
       next [] unless File.file?(pol_file)
-          
+
       resources = Hash.new
 
       gpos = lgpo('/parse', '/q', "/#{scope[0]}", pol_file)
@@ -96,10 +96,10 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
             :value             => value,
           }
         end
-              
+
       end
       resources.map{|k, v| new(v)}
-    end.flatten  
+    end.flatten
   end
 
   def set_value(val)
@@ -115,15 +115,14 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     end
 
     out_scope = (scope == 'machine' ? 'computer' : scope).capitalize
-    
     delete_value = setting_valuetype == '[HASHTABLE]' ? 'DELETEALLVALUES' : 'DELETE'
-    
+
     out = Array.new
     if setting_valuetype == '[HASHTABLE]' and val != 'DELETE'
       val.each do |k, v|
         out << "#{out_scope}\n#{path['setting_key']}\n#{k}\nSZ:#{v}"
       end
-    else  
+    else
       real_val = val == 'DELETE' ? delete_value : "#{path['setting_valuetype'].gsub('REG_', '')}:#{val}"
       setting_valuename = real_val == 'DELETEALLVALUES' ? '*' : path['setting_valuename']
 
