@@ -102,6 +102,10 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     end.flatten
   end
 
+  def out_line(scope, key, value_name, value)
+      "#{scope}\n#{key}\n#{value_name}\n#{value}"
+  end
+
   def set_value(val)
     scope = resource[:scope].to_s
     admx_file = resource[:admx_file]
@@ -115,19 +119,19 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     end
 
     out_scope = (scope == 'machine' ? 'computer' : scope).capitalize
-    delete_value = setting_valuetype == '[HASHTABLE]' ? 'DELETEALLVALUES' : 'DELETE'
 
     out = Array.new
-    if setting_valuetype == '[HASHTABLE]' and val != 'DELETE'
-      val.each do |k, v|
-        out << "#{out_scope}\n#{path['setting_key']}\n#{k}\nSZ:#{v}"
-      end
+    if setting_valuetype == '[HASHTABLE]'
+        if val == 'DELETE'
+            out << out_line(out_scope, path['setting_key'], '*', 'DELETEALLVALUES')
+        else
+            val.each do |k, v|
+                out << out_line(out_scope, path['setting_key'], k, "SZ: #{v}")
+            end
+        end
     else
-      real_val = val == 'DELETE' ? delete_value : "#{path['setting_valuetype'].gsub('REG_', '')}:#{val}"
-      setting_valuename = real_val == 'DELETEALLVALUES' ? '*' : path['setting_valuename']
-
-      out << "#{out_scope}\n#{path['setting_key']}\n#{setting_valuename}\n#{real_val}"
-
+        val = "#{path['setting_valuetype'].gsub('REG_', '')}:#{val}" unless val == 'DELETE'
+        out << out_line(out_scope, path['setting_key'], path['setting_valuename'], val)
     end
 
     out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
