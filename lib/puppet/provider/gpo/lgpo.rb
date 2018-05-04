@@ -176,14 +176,9 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
     gpos = lgpo('/parse', '/q', "/#{scope[0]}", pol_file)
     # Parse file and remove key
-    File.open(out_file_path, 'a') do |out_file|
-      gpos.split("\n\n").reject { |l| l.start_with? ';' }.each do |g|
-        split_g = g.split("\n")
-        unless split_g[1] == key
-          out_file.write("\n\n#{g}")
-        end
-      end
-    end
+    new_gpos = gpos.split("\n\n").reject { |l| l.start_with? ';' }
+                   .reject{ |l| l.split("\n")[1] == key }
+    File.write(out_file_path, new_gpos.join("\n\n"))
 
     pol_file = convert_to_pol(out_file)
     import_pol(pol_file)
