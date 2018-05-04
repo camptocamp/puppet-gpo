@@ -121,11 +121,9 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
   end
 
   # import lgpo_import.pol with lgpo.exe
-  def import_pol(file)
+  def import_pol(file, scope, guid)
     lgpo_args = ["/#{scope[0]}", file]
-    if guid = path['policy_cse']
-      lgpo_args << '/e' << guid
-    end
+    lgpo_args << '/e' << guid if guid
     lgpo(*lgpo_args)
     File.delete(file)
   end
@@ -163,7 +161,8 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
       out_file.write(out.join("\n\n"))
     end
 
-    remove_key(path['setting_key'], scope) if setting_valuetype == '[HASHTABLE]'
+    guid = path['policy_cse']
+    remove_key(path['setting_key'], scope, guid) if setting_valuetype == '[HASHTABLE]'
 
     out_polfile_path = convert_to_pol(out_file_path)
 
@@ -172,10 +171,10 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
         File.delete(pol_file)
     end
 
-    import_pol(out_polfile_path)
+    import_pol(out_polfile_path, scope, guid)
   end
 
-  def remove_key(key, scope)
+  def remove_key(key, scope, guid)
     pol_file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
     return unless File.file?(pol_file)
 
@@ -187,6 +186,6 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     File.write(out_file, new_gpos.join("\n\n"))
 
     pol_file = convert_to_pol(out_file)
-    import_pol(pol_file)
+    import_pol(pol_file, scope, guid)
   end
 end
