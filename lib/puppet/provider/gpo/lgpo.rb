@@ -106,6 +106,25 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
       "#{scope}\n#{key}\n#{value_name}\n#{value}"
   end
 
+  # Convert lgpo_import.txt to lgpo_import.pol with lgpo.exe
+  def convert_to_pol(file)
+      pol_file = File.basename(file, '.txt') + '.pol'
+      lgpo_args = ['/r', file, '/w', pol_file]
+      lgpo(*lgpo_args)
+      File.delete(file)
+      pol_file
+  end
+
+  # import lgpo_import.pol with lgpo.exe
+  def import_pol(file)
+    lgpo_args = ["/#{scope[0]}", file]
+    if guid = path['policy_cse']
+      lgpo_args << '/e' << guid
+    end
+    lgpo(*lgpo_args)
+    File.delete(file)
+  end
+
   def set_value(val)
     scope = resource[:scope].to_s
     admx_file = resource[:admx_file]
@@ -135,30 +154,20 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     end
 
     out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
-    out_polfile_path = File.join(Puppet[:vardir], 'lgpo_import.pol')
     File.open(out_file_path, 'w') do |out_file|
       out_file.write(out.join("\n\n"))
     end
 
     remove_key(path['setting_key'], scope) if setting_valuetype == '[HASHTABLE]'
 
-    # Convert lgpo_import.txt to lgpo_import.pol with lgpo.exe
-    lgpo_args = ['/r', out_file_path, '/w', out_polfile_path]
-    lgpo(*lgpo_args)
-    File.delete(out_file_path)
+    out_polfile_path = convert_to_pol(out_file_path)
 
     if setting_valuetype == '[HASHTABLE]'
         pol_file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
         File.delete(pol_file)
     end
 
-    # import lgpo_import.pol with lgpo.exe
-    lgpo_args = ["/#{scope[0]}", out_polfile_path]
-    if guid = path['policy_cse']
-      lgpo_args << '/e' << guid
-    end
-    lgpo(*lgpo_args)
-    File.delete(out_polfile_path)
+    import_pol(out_polfile_path)
   end
 
   def remove_key(key, scope)
@@ -166,6 +175,7 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     return [] unless File.file?(pol_file)
     out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
     gpos = lgpo('/parse', '/q', "/#{scope[0]}", pol_file)
+    # Parse file and remove key
     File.open(out_file_path, 'a') do |out_file|
       gpos.split("\n\n").reject { |l| l.start_with? ';' }.each do |g|
         split_g = g.split("\n")
@@ -174,5 +184,8 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
         end
       end
     end
+
+    pol_file = convert_to_pol(out_file)
+    import_pol(pol_file)
   end
 end
