@@ -156,6 +156,7 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
         out << out_line(out_scope, path['setting_key'], path['setting_valuename'], val)
     end
 
+    # If it is a hash table we need to delete the current values in the pol file so that they can be updated
     remove_key(path['setting_key'], scope, path['policy_cse']) if setting_valuetype == '[HASHTABLE]'
 
     out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
@@ -164,12 +165,11 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     end
   
     out_polfile_path = convert_to_pol(out_file_path)
-
     import_pol(out_polfile_path, scope, path['policy_cse'])
   end
 
   def remove_key(key, scope, cse_guid)
-    
+    # This function is removing content from the pol file so that hash values can be updated without carying over the old part
     Puppet.debug "remove #{key} in scope #{scope}"
     
     system_pol_file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
@@ -180,13 +180,15 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     # Parse file and remove key
     new_gpos = gpos.split("\n\n").reject { |l| l.start_with? ';' }
                    .reject{ |l| l.split("\n")[1] == key }
-    #File.write(out_file, new_gpos.join("\n\n"))
-    File.open out_file, 'w' do |f|
-      f.write new_gpos.join("\n\n")
-    end
+    File.write(out_file, new_gpos.join("\n\n"))
+    
+    # convert txt file to pol file
     pol_file = convert_to_pol(out_file)
+
     # delete existing polfile
     File.delete(system_pol_file)
+
+    # apply pol file to 
     import_pol(pol_file, scope, cse_guid)
   end
 end
