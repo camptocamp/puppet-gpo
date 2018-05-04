@@ -63,6 +63,11 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
         split_g = g.split("\n")
         path = paths.get_by_key(scope, split_g[1].downcase, split_g[2].downcase)
 
+        if path.nil?
+            warn "Unkown path for gpo resource: '#{split_g[1]}/#{split_g[2]}'"
+            next
+        end
+
         admx_file = path['admx_file'].downcase
         policy_id = path['policy_id'].downcase
         setting_valuename = path['setting_valuename'].downcase
