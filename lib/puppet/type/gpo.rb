@@ -12,6 +12,11 @@ Puppet::Type.newtype(:gpo) do
         newvalue(:deleted) do
             provider.delete
         end
+
+        def insync?(is)
+            return true if should == :deleted and provider.deleted?
+            super
+        end
     end
 
     newparam(:name, :namevar => true) do

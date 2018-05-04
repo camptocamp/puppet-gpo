@@ -8,6 +8,10 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     @property_hash[:ensure] == :present
   end
 
+  def deleted?
+    @property_hash[:ensure] == :deleted
+  end
+
   def create
     set_value(resource[:value])
     @property_hash[:ensure] = :present
@@ -51,13 +55,18 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
     ['machine', 'user'].map do |scope|
       pol_file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
       next [] unless File.file?(pol_file)
-          
+
       resources = Hash.new
 
       gpos = lgpo('/parse', '/q', "/#{scope[0]}", pol_file)
       gpos.split("\n\n").reject { |l| l.start_with? ';' }.map do |g|
         split_g = g.split("\n")
         path = paths.get_by_key(scope, split_g[1].downcase, split_g[2].downcase)
+
+        if path.nil?
+          warn "Unkown path for gpo resource: '#{split_g[1]}/#{split_g[2]}'"
+          next
+        end
 
         admx_file = path['admx_file'].downcase
         policy_id = path['policy_id'].downcase
@@ -92,10 +101,31 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
             :value             => value,
           }
         end
-              
+
       end
       resources.map{|k, v| new(v)}
-    end.flatten  
+    end.flatten
+  end
+
+  def out_line(scope, key, value_name, value)
+      "#{scope}\n#{key}\n#{value_name}\n#{value}"
+  end
+
+  # Convert lgpo_import.txt to lgpo_import.pol with lgpo.exe
+  def convert_to_pol(file)
+      pol_file = file.sub(/\.txt$/,'.pol')
+      lgpo_args = ['/r', file, '/w', pol_file]
+      lgpo(*lgpo_args)
+      File.delete(file)
+      pol_file
+  end
+
+  # import lgpo_import.pol with lgpo.exe
+  def import_pol(file, scope, guid)
+    lgpo_args = ["/#{scope[0]}", file]
+    lgpo_args << '/e' << guid if guid
+    lgpo(*lgpo_args)
+    File.delete(file)
   end
 
   def set_value(val)
@@ -110,32 +140,56 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
       raise Puppet::Error, "Wrong path: '#{path}'"
     end
 
-    out_scope = scope == 'machine' ? 'computer' : scope
-    
-    delete_value = setting_valuetype == '[HASHTABLE]' ? 'DELETEALLVALUES' : 'DELETE'
+    out_scope = (scope == 'machine' ? 'computer' : scope).capitalize
 
-    real_val = val == 'DELETE' ? delete_value : "#{path['setting_valuetype'].gsub('REG_', '')}:#{val}"
-    setting_valuename = real_val == 'DELETEALLVALUES' ? '*' : path['setting_valuename']
+    out = Array.new
+    if setting_valuetype == '[HASHTABLE]'
+        if val == 'DELETE'
+            out << out_line(out_scope, path['setting_key'], '*', 'DELETEALLVALUES')
+        else
+            val.each do |k, v|
+                out << out_line(out_scope, path['setting_key'], k, "SZ:#{v}")
+            end
+        end
+    else
+        val = "#{path['setting_valuetype'].gsub('REG_', '')}:#{val}" unless val == 'DELETE'
+        out << out_line(out_scope, path['setting_key'], path['setting_valuename'], val)
+    end
 
-    out = "#{out_scope}\n#{path['setting_key']}\n#{setting_valuename}\n#{real_val}"
+    # If it is a hash table we need to delete the current values in the pol file so that they can be updated
+    remove_key(path['setting_key'], scope, path['policy_cse']) if setting_valuetype == '[HASHTABLE]'
 
     out_file_path = File.join(Puppet[:vardir], 'lgpo_import.txt')
-    out_polfile_path = File.join(Puppet[:vardir], 'lgpo_import.pol')
     File.open(out_file_path, 'w') do |out_file|
-      out_file.write(out)
+      out_file.write(out.join("\n\n"))
     end
+  
+    out_polfile_path = convert_to_pol(out_file_path)
+    import_pol(out_polfile_path, scope, path['policy_cse'])
+  end
 
-    # Convert lgpo_import.txt to lgpo_import.pol with lgpo.exe
-    lgpo_args = ['/r', out_file_path, '/w', out_polfile_path]
-    lgpo(*lgpo_args)
-    File.delete(out_file_path)
+  def remove_key(key, scope, cse_guid)
+    # This function is removing content from the pol file so that hash values can be updated without carying over the old part
+    Puppet.debug "remove #{key} in scope #{scope}"
+    
+    system_pol_file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
+    return unless File.file?(system_pol_file)
 
-    # import lgpo_import.pol with lgpo.exe
-    lgpo_args = ["/#{scope[0]}", out_polfile_path]
-    if guid = path['policy_cse']
-      lgpo_args << '/e' << guid
-    end
-    lgpo(*lgpo_args)
-    File.delete(out_polfile_path)
+    out_file = File.join(Puppet[:vardir], 'lgpo_import.txt')
+    gpos = lgpo('/parse', '/q', "/#{scope[0]}", system_pol_file)
+    # Parse file and remove key
+    new_gpos = gpos.split("\n\n").reject { |l| l.start_with? ';' }
+                   .reject{ |l| l.split("\n")[1] == key }
+    File.write(out_file, new_gpos.join("\n\n"))
+    
+    # convert txt file to pol file
+    pol_file = convert_to_pol(out_file)
+
+    # delete existing polfile
+    File.delete(system_pol_file)
+
+    # apply pol file to 
+    import_pol(pol_file, scope, cse_guid)
   end
 end
+
