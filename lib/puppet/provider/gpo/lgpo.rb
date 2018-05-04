@@ -168,7 +168,7 @@ Puppet::Type.type(:gpo).provide(:lgpo) do
 
     if setting_valuetype == '[HASHTABLE]'
         pol_file = "C:\\Windows\\System32\\GroupPolicy\\#{scope.capitalize}\\Registry.pol"
-        File.delete(pol_file)
+        File.delete(pol_file) if File.file?(pol_file)
     end
 
     import_pol(out_polfile_path, scope, guid)
